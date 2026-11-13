@@ -1,0 +1,62 @@
+{
+  "comment": "Shared by pc/tests/test_contract.py and app/src/test/.../ContractTest.kt. Both sides must pass against this same file. See docs/contract.md.",
+  "version": 1,
+  "port": 47800,
+  "frames": [
+    {
+      "name": "header only",
+      "hex": "000000227b226d6f64756c65223a22616374696f6e73222c2274797065223a226c697374227d",
+      "header": {"module": "actions", "type": "list"},
+      "body_hex": ""
+    },
+    {
+      "name": "header and body",
+      "hex": "000000287b226d6f64756c65223a226d6963222c2274797065223a22617564696f222c2273697a65223a347d01020304",
+      "header": {"module": "mic", "type": "audio", "size": 4},
+      "body_hex": "01020304"
+    },
+    {
+      "name": "non-ASCII text in the header",
+      "hex": "000000237b2274797065223a2268656c6c6f222c226e616d65223a224d6176c3ad20c3b161227d",
+      "header": {"type": "hello", "name": "Maví ña"},
+      "body_hex": ""
+    }
+  ],
+  "bad_frames": [
+    {"name": "truncated length", "hex": "000000"},
+    {"name": "header longer than the limit", "hex": "00010001"},
+    {"name": "header is not JSON", "hex": "000000026869"},
+    {"name": "header is not an object", "hex": "000000025b5d"},
+    {"name": "body shorter than size", "hex": "0000000a7b2273697a65223a397d0102"},
+    {"name": "negative size", "hex": "0000000b7b2273697a65223a2d317d"}
+  ],
+  "app_sends": {
+    "hello_pair": {"type": "hello", "v": 1, "device": {"id": "d1", "name": "Redmi"}, "modules": ["actions", "mic", "share"], "pair": "CODE"},
+    "hello_auth": {"type": "hello", "v": 1, "device": {"id": "d1", "name": "Redmi"}, "modules": ["actions", "mic", "share"], "token": "TOKEN"},
+    "discovery_ask": {"enlace": 1, "find": "pc1"},
+    "mic_start": {"module": "mic", "type": "start", "format": "s16le", "rate": 48000, "channels": 1},
+    "mic_audio": {"module": "mic", "type": "audio"},
+    "mic_stop": {"module": "mic", "type": "stop"},
+    "share_clipboard": {"module": "share", "type": "item", "mime": "image/jpeg", "name": "foto.jpg", "to": "clipboard"},
+    "share_downloads": {"module": "share", "type": "item", "mime": "application/pdf", "name": "apunte.pdf", "to": "downloads"},
+    "actions_list": {"module": "actions", "type": "list"},
+    "actions_run": {"module": "actions", "type": "run", "id": "lock"}
+  },
+  "pc_sends": {
+    "welcome": {"type": "welcome", "v": 1, "pc": {"id": "pc1", "name": "arch"}, "modules": ["actions", "mic", "share"]},
+    "welcome_paired": {"type": "welcome", "v": 1, "pc": {"id": "pc1", "name": "arch"}, "modules": ["actions", "mic", "share"], "token": "TOKEN"},
+    "error": {"type": "error", "code": "unauthorized"},
+    "error_module": {"type": "error", "code": "bad_request", "module": "mic"},
+    "discovery_reply": {"enlace": 1, "pc": "pc1", "port": 47800},
+    "mic_started": {"module": "mic", "type": "started"},
+    "mic_stopped": {"module": "mic", "type": "stopped"},
+    "share_done_clipboard": {"module": "share", "type": "done", "result": "clipboard"},
+    "share_done_saved": {"module": "share", "type": "done", "result": "saved", "name": "apunte.pdf"},
+    "actions_list": {"module": "actions", "type": "list", "actions": [{"id": "lock", "label": "Bloquear", "icon": "lock"}]},
+    "actions_ran": {"module": "actions", "type": "ran", "id": "lock", "ok": true}
+  },
+  "pair_uri": {
+    "uri": "enlace://pair?h=192.168.0.38&p=47800&id=pc1&n=arch&fp=ab12&c=CODE",
+    "host": "192.168.0.38", "port": 47800, "id": "pc1", "name": "arch", "fingerprint": "ab12", "code": "CODE"
+  }
+}

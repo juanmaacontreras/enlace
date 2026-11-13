@@ -1,0 +1,19 @@
+[project]
+name = "enlace"
+version = "0.1.0"
+description = "Links Juanma's phone and tablet to the PC: microphone, share to clipboard, action buttons"
+requires-python = ">=3.13"
+dependencies = ["segno>=1.6", "pillow>=10"]
+
+[project.scripts]
+enlace = "enlace.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

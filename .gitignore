@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+pc/dist/
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+
+# Never: signing keys and anything paired
+*.keystore
+*.jks
+*.pem
+*.key
+*.token
