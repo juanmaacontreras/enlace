@@ -1,4 +1,4 @@
-"""`enlace serve | pair | devices | unpair`."""
+"""`enlace serve | pair | devices | unpair | lamp`."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import sys
 import time
 from urllib.parse import urlencode
 
-from . import protocol
+from . import lamps, protocol
 from .modules import actions
 from .server import Server
 from .store import PAIR_SECONDS, Store
@@ -97,6 +97,77 @@ def cmd_unpair(args) -> int:
     return 0
 
 
+def _show(lamp, state) -> None:
+    if not state["on"]:
+        print(f"{lamp.name}: off")
+        return
+    look = f"colour (hue {state['hue']})" if state["mode"] == "colour" else f"white, temp {state['temp']}%"
+    print(f"{lamp.name}: on, {state['brightness']}%, {look}")
+
+
+def cmd_lamp(args) -> int:
+    try:
+        if args.verb == "link":
+            return _lamp_link(args.value)
+        known = lamps.read()
+        if args.verb == "status":
+            targets = [lamps.pick(known, args.lamp)] if args.lamp else known
+            if not targets:
+                lamps.pick(known, None)
+            failed = 0
+            for lamp in targets:
+                try:
+                    _show(lamp, lamps.state(lamp))
+                except lamps.LampError as error:
+                    print(error)
+                    failed += 1
+            return 1 if failed == len(targets) else 0
+        if args.verb == "default":
+            chosen = lamps.pick(known, args.value)
+            for lamp in known:
+                lamp.default = lamp is chosen
+            lamps.write(known)
+            print(f"Default lamp: {chosen.name}")
+            return 0
+        wanted = {"brightness": args.brightness, "temp": args.temp, "colour": args.color}
+        if args.verb in ("on", "off"):
+            wanted["on"] = args.verb == "on"
+        elif args.verb == "toggle":
+            wanted["toggle"] = True
+        elif args.verb in ("brightness", "temp", "color"):
+            if args.value is None:
+                print(f"enlace lamp {args.verb} needs a value")
+                return 2
+            wanted["colour" if args.verb == "color" else args.verb] = args.value
+        lamp = lamps.pick(known, args.lamp)
+        _show(lamp, lamps.apply(lamp, **wanted))
+        return 0
+    except lamps.LampError as error:
+        print(error)
+        return 1
+
+
+def _lamp_link(user_code: str | None) -> int:
+    import segno
+
+    if not user_code:
+        print("Give the user code: Smart Life > Yo > settings > Cuenta y seguridad > Código de usuario")
+        return 2
+    login, token, text = lamps.link_start(user_code)
+    segno.make(text, error="m").terminal(compact=True, border=2)
+    print("\n  Scan it with the Smart Life app's scanner and confirm. Valid for 3 minutes.\n")
+    deadline = time.time() + 180
+    while time.time() < deadline:
+        found = lamps.link_finish(login, token, user_code)
+        if found is not None:
+            lamps.write(lamps.merge(lamps.read(), found))
+            print(f"  Linked {len(found)} lamp(s): {', '.join(lamp.name for lamp in found) or 'none'}")
+            return 0 if found else 1
+        time.sleep(2)
+    print("  Not scanned. Run it again for a new code.")
+    return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="enlace", description="Link phone and tablet to this PC")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -112,6 +183,19 @@ def main(argv: list[str] | None = None) -> int:
     unpair = sub.add_parser("unpair", help="forget a device")
     unpair.add_argument("device", help="name or id")
     unpair.set_defaults(func=cmd_unpair)
+    lamp = sub.add_parser(
+        "lamp", help="switch and dim the lamps",
+        description="status | on | off | toggle | brightness N|+N|-N | temp N|warm|neutral|cold | "
+                    "color NAME|#rrggbb | default NAME | link USER_CODE",
+    )
+    lamp.add_argument("verb", nargs="?", default="status", choices=[
+        "status", "on", "off", "toggle", "brightness", "temp", "color", "default", "link"])
+    lamp.add_argument("value", nargs="?")
+    lamp.add_argument("--lamp", help="part of the lamp's name (default: the default lamp)")
+    lamp.add_argument("--brightness", help="with on/toggle/temp/color: percentage")
+    lamp.add_argument("--temp", help="with on: white temperature, 0 warm to 100 cold")
+    lamp.add_argument("--color", help="with on: colour name or #rrggbb")
+    lamp.set_defaults(func=cmd_lamp)
     args = parser.parse_args(argv)
     return args.func(args)
 

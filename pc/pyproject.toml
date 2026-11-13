@@ -3,7 +3,12 @@ name = "enlace"
 version = "0.1.0"
 description = "Links Juanma's phone and tablet to the PC: microphone, share to clipboard, action buttons"
 requires-python = ">=3.13"
-dependencies = ["segno>=1.6", "pillow>=10"]
+dependencies = [
+    "segno>=1.6",
+    "pillow>=10",
+    "tinytuya>=1.17",
+    "tuya-device-sharing-sdk>=0.2",
+]
 
 [project.scripts]
 enlace = "enlace.cli:main"
