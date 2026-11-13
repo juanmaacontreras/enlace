@@ -2,7 +2,9 @@
 
 First ask whether it needs code at all. **Something the PC does when a button is tapped**
 (lock, switch audio output, pause, open something) is four lines in
-`~/.config/enlace/actions.toml`; the app re-reads the list every time it opens.
+`~/.config/enlace/actions.toml`; the app re-reads the list every time it opens. The lamp
+buttons are exactly that: entries that run `enlace lamp toggle`, `enlace lamp brightness +20`,
+`enlace lamp on --temp warm --brightness 15` (`enlace lamp -h` lists the rest).
 
 A feature that needs something from the device (a sensor, a permission, a stream) is a module:
 
