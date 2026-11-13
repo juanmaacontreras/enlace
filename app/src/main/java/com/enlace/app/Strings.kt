@@ -23,6 +23,13 @@ object Strings {
     const val UNLINK_CONFIRM = "¿Desvincular este dispositivo de la compu?"
     const val CANCEL = "Cancelar"
 
+    const val UPDATE = "Hay una versión nueva"
+    const val UPDATE_ABOUT = "Se descarga y te pide confirmar la instalación."
+    const val UPDATE_NOW = "Actualizar"
+    const val UPDATE_PERMISSION = "Permití «instalar apps desconocidas» para Enlace y volvé a tocar Actualizar."
+    const val UPDATE_DOWNLOADING = "Descargando…"
+    const val UPDATE_FAILED = "No se pudo descargar. Probá de nuevo."
+
     const val MIC = "Micrófono"
     const val MIC_ABOUT = "La compu usa el micrófono de este dispositivo."
     const val MIC_TURN_ON = "Prender"

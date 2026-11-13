@@ -16,6 +16,7 @@ import com.enlace.app.core.Modules
 import com.enlace.app.core.PairUri
 import com.enlace.app.core.Prefs
 import com.enlace.app.core.Protocol
+import com.enlace.app.core.Updater
 import com.enlace.app.modules.mic.MicModule
 import com.google.zxing.integration.android.IntentIntegrator
 import org.json.JSONObject
@@ -35,6 +36,7 @@ class MainActivity : Activity() {
     private lateinit var root: LinearLayout
     private var status: TextView? = null
     private var resumed = false
+    private var update: Updater.Release? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +54,10 @@ class MainActivity : Activity() {
         super.onResume()
         resumed = true
         if (Prefs.pc(this) == null) render() else connect()
+        Updater.check(this) { release ->
+            update = release
+            if (resumed) render()
+        }
     }
 
     override fun onPause() {
@@ -119,6 +125,7 @@ class MainActivity : Activity() {
         val pc = Prefs.pc(this)
         if (pc == null) {
             renderUnlinked()
+            renderUpdate(Ui.dp(this, 26f))
             return
         }
 
@@ -136,6 +143,7 @@ class MainActivity : Activity() {
         status = Ui.text(this, line, 15f, color)
         root.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = Ui.dp(this@MainActivity, 2f) })
         root.addView(Ui.gap(this, 22f))
+        renderUpdate(0)
 
         if (link == null && !searching) {
             root.addView(Ui.button(this, Strings.RETRY, true) { connect() }, LinearLayout.LayoutParams(-1, -2))
@@ -165,6 +173,27 @@ class MainActivity : Activity() {
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = Ui.dp(this@MainActivity, 12f) })
         root.addView(Ui.gap(this, 26f))
         root.addView(Ui.button(this, Strings.SCAN, true) { scan() }, LinearLayout.LayoutParams(-1, -2))
+    }
+
+    /** The "new version" card, only while GitHub has a release newer than this build. */
+    private fun renderUpdate(above: Int) {
+        val release = update ?: return
+        val card = Ui.card(this, "download", Strings.UPDATE + "  ·  v" + release.version, Strings.UPDATE_ABOUT)
+        val button = Ui.button(this, Strings.UPDATE_NOW, true) {}
+        button.setOnClickListener {
+            Updater.install(this, release) { state ->
+                when (state) {
+                    Updater.State.NEEDS_PERMISSION -> toast(Strings.UPDATE_PERMISSION)
+                    Updater.State.DOWNLOADING -> button.text = Strings.UPDATE_DOWNLOADING
+                    Updater.State.FAILED -> { button.text = Strings.UPDATE_NOW; toast(Strings.UPDATE_FAILED) }
+                }
+            }
+        }
+        card.addView(button, LinearLayout.LayoutParams(-1, -2).apply { topMargin = Ui.dp(this@MainActivity, 14f) })
+        root.addView(card, LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = above
+            bottomMargin = Ui.dp(this@MainActivity, 14f)
+        })
     }
 
     private fun confirmUnlink() {

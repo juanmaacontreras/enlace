@@ -24,7 +24,11 @@ to the device, or touch any other app's data. No accounts, no cloud, no adb.
 - Session tools (JDK 17, Gradle 8.7, Android SDK 34) go in the scratchpad with `GRADLE_USER_HOME`
   there too. Nothing global. The PC runs the service from this checkout (`uv tool install
   --editable pc`), started by `enlace.service` in dotfiles: restart it after changing `pc/`.
-- Branch + PR per change.
+- **Releases are cut on this PC**, not in CI (the key stays here): `tools/release.sh` on a pushed
+  `main` builds, checks and publishes `enlace.apk` as GitHub Release `v<commit count>`. The app
+  checks the latest release when it opens and offers to update (`core/Updater.kt`); the repo is
+  public for that, so nothing secret or personal goes in it. CI (`check.yml`) only tests.
+- Branch + PR per change; a merged change that touches `app/` is followed by a release.
 
 ## Check
 

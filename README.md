@@ -8,4 +8,7 @@ buttons in the app. No accounts, no cloud.
 - `app/` — the Android app.
 - `docs/contract.md` — the wire format both implement. `docs/modules.md` — how to add a feature.
 
+Install the app from the latest [release](https://github.com/juanmaacontreras/enlace/releases/latest)
+(`enlace.apk`); after that it offers its own updates.
+
 See `CLAUDE.md` for how to build and check it.

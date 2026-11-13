@@ -16,12 +16,12 @@ kernel had been updated without a reboot). First install must check:
   quality and delay, the quick-settings tile, stop from the notification.
 - Compartir → A la compu from Gallery, Chrome and WhatsApp; "Enviar a la compu" on selected text.
 - Action buttons.
+- The update card: it shows only when GitHub has a release newer than the installed build, so the
+  first real check is the second release.
 - Whether HyperOS kills the microphone service in the background (if so: battery "no restrictions").
 
 ## Next
 
-- App updates through the link itself (the PC hands the device a newer APK), so the repo can stay
-  private and no update ever needs a cable or a download.
 - PC → device clipboard (Android allows writing the clipboard from a background service).
 - Retire the old path in dotfiles once the microphone is confirmed: `phone-mic`,
   `phone-mic.service`, the phone entries of `audio-in`, `clipdrop` and LocalSend.

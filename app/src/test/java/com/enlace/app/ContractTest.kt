@@ -3,6 +3,7 @@ package com.enlace.app
 import com.enlace.app.core.Messages
 import com.enlace.app.core.PairUri
 import com.enlace.app.core.Protocol
+import com.enlace.app.core.Updater
 import org.json.JSONObject
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -79,5 +80,17 @@ class ContractTest {
         assertNull(PairUri.parse("https://example.com/?h=1"))
         assertNull(PairUri.parse("enlace://pair?h=1.2.3.4&p=0&id=a&fp=b&c=c"))
         assertNull(PairUri.parse("not a uri at all"))
+    }
+
+    @Test fun updaterReadsAGitHubRelease() {
+        val release = Updater.parse(
+            """{"tag_name":"v12","assets":[{"name":"notes.txt","browser_download_url":"https://x/notes.txt"},
+               {"name":"enlace.apk","browser_download_url":"https://github.com/o/r/releases/download/v12/enlace.apk"}]}""")!!
+        assertEquals(12L, release.version)
+        assertEquals("https://github.com/o/r/releases/download/v12/enlace.apk", release.apkUrl)
+        assertNull(Updater.parse("""{"tag_name":"v12","assets":[]}"""))
+        assertNull(Updater.parse("""{"tag_name":"nightly","assets":[{"name":"a.apk","browser_download_url":"https://x/a.apk"}]}"""))
+        assertNull(Updater.parse("""{"tag_name":"v12","assets":[{"name":"a.apk","browser_download_url":"http://x/a.apk"}]}"""))
+        assertNull(Updater.parse("not json"))
     }
 }
