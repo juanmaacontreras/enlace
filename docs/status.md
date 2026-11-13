@@ -11,13 +11,15 @@
 - Install from the GitHub release, QR scan and pairing ("vinculó y anda", the user).
 - Microphone: the PC had `enlace-mic` ("Redmi Note 11 (Enlace)") as its default source and a
   3-second recording from it peaked at -16 dBFS.
+- Microphone with the phone suspended (screen off): the user dictated a message through it and
+  it was understood. HyperOS did not stop the service in that test.
 
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:
 
-- Microphone over a long call: the foreground service on HyperOS with the screen off, delay, the
-  quick-settings tile, stop from the notification.
+- Microphone over a long call (an hour with the screen off), delay, the quick-settings tile,
+  stop from the notification.
 - Compartir → A la compu from Gallery, Chrome and WhatsApp; "Enviar a la compu" on selected text.
 - Action buttons.
 - The update card: it shows only when GitHub has a release newer than the installed build, so the
