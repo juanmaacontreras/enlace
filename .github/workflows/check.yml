@@ -1,0 +1,29 @@
+name: Check
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: PC tests
+        run: cd pc && uv run pytest -q
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # Explicit packages: the action's default includes 'tools', which Google retired.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: App tests and build
+        run: gradle testDebugUnitTest assembleDebug --no-daemon
+      - name: The app's link code against the real service
+        run: tools/interop.sh

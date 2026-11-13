@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only what the manifest needs; the rest of the text is in Strings.kt. -->
+    <string name="app_name">Enlace</string>
+    <string name="mic_tile">Mic a la compu</string>
+    <string name="share_target">A la compu</string>
+    <string name="share_text">Enviar a la compu</string>
+</resources>

@@ -39,7 +39,7 @@ def cmd_serve(args) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     actions.write_example()
     try:
-        asyncio.run(Server().serve_forever())
+        asyncio.run(Server(port=args.port).serve_forever())
     except KeyboardInterrupt:
         pass
     return 0
@@ -51,7 +51,10 @@ def cmd_pair(args) -> int:
     store = Store()
     store.ensure_certificate()
     before = set(store.devices())
-    uri = pair_uri(store, store.start_pairing(), lan_address())
+    uri = pair_uri(store, store.start_pairing(), args.host or lan_address(), args.port)
+    if args.uri_only:  # for scripts and tests: no QR, no waiting
+        print(uri)
+        return 0
     segno.make(uri, error="m").terminal(compact=True, border=2)
     print(f"\n  Scan it from the Enlace app. Valid for {PAIR_SECONDS // 60} minutes.\n")
 
@@ -96,8 +99,14 @@ def cmd_unpair(args) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="enlace", description="Link phone and tablet to this PC")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("serve", help="run the link service").set_defaults(func=cmd_serve)
-    sub.add_parser("pair", help="show a QR to pair a new device").set_defaults(func=cmd_pair)
+    serve = sub.add_parser("serve", help="run the link service")
+    serve.add_argument("--port", type=int, default=protocol.PORT)
+    serve.set_defaults(func=cmd_serve)
+    pair = sub.add_parser("pair", help="show a QR to pair a new device")
+    pair.add_argument("--port", type=int, default=protocol.PORT)
+    pair.add_argument("--host", help="address to put in the QR (default: this PC's LAN address)")
+    pair.add_argument("--uri-only", action="store_true", help="print the pairing link and exit")
+    pair.set_defaults(func=cmd_pair)
     sub.add_parser("devices", help="list paired devices").set_defaults(func=cmd_devices)
     unpair = sub.add_parser("unpair", help="forget a device")
     unpair.add_argument("device", help="name or id")
