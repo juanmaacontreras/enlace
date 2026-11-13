@@ -26,7 +26,8 @@ the other side lacks is simply not shown.
 ## Rules a module keeps
 
 - It never trusts the device for anything that runs or is written on the PC: `actions` runs only
-  ids listed in the file; `share` strips every path from a file name.
+  ids listed in the file; `share` strips every path from a file name; `inbox` serves only ids it
+  listed itself.
 - It releases what it holds in `closed()`: a connection can drop at any moment.
 - Nothing fails quietly. A dead microphone looks like a working one, so `MicService` retries for
   half a minute and then says so in a notification.

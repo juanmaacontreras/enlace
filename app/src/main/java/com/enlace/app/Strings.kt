@@ -53,6 +53,14 @@ object Strings {
     const val SHARE_FAILED = "No encontré la compu"
     const val SHARE_NOT_LINKED = "Este dispositivo no está vinculado. Abrí Enlace."
 
+    const val INBOX = "De la compu"
+    const val INBOX_ABOUT = "Lo que mandás desde la compu llega al abrir Enlace."
+    const val INBOX_COPIED = "Copiado, listo para pegar"
+    const val INBOX_IN_GALLERY = "Guardado en Galería"
+    const val INBOX_IN_DOWNLOADS = "Guardado en Descargas"
+    const val INBOX_FAILED = "No pude guardar lo que mandó la compu"
+    const val INBOX_NO_APP = "No hay una app para abrirlo"
+
     const val ACTIONS = "Acciones"
     const val ACTIONS_EMPTY = "Sin botones. Se agregan en la compu, en ~/.config/enlace/actions.toml"
     const val ACTION_FAILED = "No se pudo"

@@ -18,6 +18,8 @@ for _ in $(seq 50); do
     sleep 0.2
 done
 
+uv run --project pc enlace send --text "https://campus.example/tp3" > /dev/null
+
 ENLACE_INTEROP=$(uv run --project pc enlace pair --uri-only --host 127.0.0.1 --port "$PORT")
 export ENLACE_INTEROP ENLACE_SCREENS="$OUT"
 gradle --no-daemon -q testDebugUnitTest --tests 'com.enlace.app.ScreensTest'

@@ -1,4 +1,4 @@
-"""`enlace serve | pair | devices | unpair | lamp`."""
+"""`enlace serve | pair | devices | unpair | lamp | send`."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import time
 from urllib.parse import urlencode
 
 from . import lamps, protocol
-from .modules import actions
+from .modules import actions, inbox
 from .server import Server
 from .store import PAIR_SECONDS, Store
 
@@ -198,6 +198,68 @@ def _lamp_link(user_code: str | None) -> int:
     return 1
 
 
+def _clipboard() -> tuple[bytes, str, str, bool] | None:
+    """What the Wayland clipboard holds, as (data, name, mime, is text)."""
+    import subprocess
+
+    def paste(*args: str) -> bytes:
+        try:
+            return subprocess.run(["wl-paste", *args], capture_output=True, timeout=10).stdout
+        except (OSError, subprocess.TimeoutExpired):
+            return b""
+
+    types = paste("--list-types").decode(errors="replace").split()
+    image = next((t for t in ("image/png", "image/jpeg") if t in types), None)
+    if image:
+        data = paste("--type", image)
+        ext = "png" if image == "image/png" else "jpg"
+        return (data, time.strftime(f"clip-%Y%m%d-%H%M%S.{ext}"), image, False) if data else None
+    data = paste("--no-newline")
+    return (data, "clipboard.txt", "text/plain", True) if data.strip() else None
+
+
+def cmd_send(args) -> int:
+    """Queue files or text for the devices; the app fetches them when it opens."""
+    import subprocess
+    from pathlib import Path
+
+    queued = []
+    try:
+        if args.text is not None:
+            queued.append(inbox.queue(args.text.encode(), "text.txt", "text/plain", text=True))
+        if args.clipboard:
+            clip = _clipboard()
+            if clip is None:
+                print("The clipboard is empty.")
+                return 1
+            queued.append(inbox.queue(*clip))
+        for name in args.files:
+            path = Path(name).expanduser()
+            if not path.is_file():
+                print(f"Not a file: {name}")
+                return 1
+            if path.stat().st_size > inbox.MAX_BYTES:
+                raise inbox.TooBig(f"{path.name}: larger than {inbox.MAX_BYTES // (1024 * 1024)} MB")
+            queued.append(inbox.queue(path.read_bytes(), path.name))
+    except inbox.TooBig as error:
+        print(error)
+        return 1
+    if not queued:
+        waiting = inbox.items()
+        print("Nothing waiting." if not waiting else "Waiting for a device:")
+        for item in waiting:
+            print(f"  {item['name']}  ({item['size']} bytes)")
+        return 0
+    what = queued[0]["name"] if len(queued) == 1 else f"{len(queued)} items"
+    if queued[0]["text"] and len(queued) == 1:
+        what = "Text"
+    print(f"Queued: {what}. Open Enlace on the phone or tablet to receive it.")
+    if args.notify:
+        subprocess.run(["notify-send", "-a", "enlace", "Enlace", f"{what}  ·  open Enlace on the device"],
+                       check=False, timeout=5)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="enlace", description="Link phone and tablet to this PC")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -230,6 +292,13 @@ def main(argv: list[str] | None = None) -> int:
     lamp.add_argument("--quick", action="store_true",
                       help="status: do not search the network on every call (for polling)")
     lamp.set_defaults(func=cmd_lamp)
+    send = sub.add_parser("send", help="queue files or text for the phone or tablet",
+                          description="With no arguments: list what is still waiting.")
+    send.add_argument("files", nargs="*", help="files to send")
+    send.add_argument("--text", help="text that lands in the device's clipboard")
+    send.add_argument("--clipboard", action="store_true", help="send what this PC's clipboard holds")
+    send.add_argument("--notify", action="store_true", help="also show a desktop notification")
+    send.set_defaults(func=cmd_send)
     args = parser.parse_args(argv)
     return args.func(args)
 

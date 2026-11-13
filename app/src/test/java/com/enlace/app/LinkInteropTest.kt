@@ -21,7 +21,7 @@ import org.junit.Test
  */
 class LinkInteropTest {
     private val uri = System.getProperty("enlace.interop") ?: ""
-    private val modules = listOf("actions", "mic", "share")
+    private val modules = listOf("actions", "inbox", "mic", "share")
     private val device = Device("interop-device", "Interop")
 
     @Test fun pairThenUseEveryModule() {
@@ -32,7 +32,7 @@ class LinkInteropTest {
         val paired = Link.connect(target.pc, device, modules, pair = target.code)
         val pc = paired.pc
         assertTrue(pc.token.isNotEmpty())
-        assertEquals(setOf("actions", "mic", "share"), paired.modules)
+        assertEquals(modules.toSet(), paired.modules)
         paired.close()
         try {
             Link.connect(target.pc, device, modules, pair = target.code)
@@ -74,6 +74,23 @@ class LinkInteropTest {
             val done = link.request(Messages.shareItem("application/pdf", "../apunte ñ.pdf", false), body)
             assertEquals("saved", done.header.getString("result"))
             assertEquals("apunte ñ.pdf", done.header.getString("name"))
+
+            // inbox: what `enlace send` queued comes down once and is gone after the confirmation.
+            val waiting = link.request(Messages.inboxList()).header.getJSONArray("items")
+            assertEquals(2, waiting.length())
+            val note = link.request(Messages.inboxGet(waiting.getJSONObject(0).getString("id")))
+            assertTrue(note.header.getBoolean("text"))
+            assertEquals("hola ñ", String(note.body, Charsets.UTF_8))
+            val file = waiting.getJSONObject(1)
+            assertEquals("para el celu.bin", file.getString("name"))
+            val got = link.request(Messages.inboxGet(file.getString("id")))
+            assertEquals("item", got.type)
+            assertTrue(got.body.contentEquals(ByteArray(200_000) { (it % 249).toByte() }))
+            assertEquals("not_found", link.request(Messages.inboxGet("../state")).header.getString("code"))
+            for (i in 0 until 2) {
+                assertEquals("removed", link.request(Messages.inboxDone(waiting.getJSONObject(i).getString("id"))).type)
+            }
+            assertEquals(0, link.request(Messages.inboxList()).header.getJSONArray("items").length())
 
             // mic: the PC accepts the stream the service sends (needs PipeWire).
             if (System.getProperty("enlace.interop.mic") == "1") {

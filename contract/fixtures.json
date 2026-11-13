@@ -40,7 +40,10 @@
     "share_clipboard": {"module": "share", "type": "item", "mime": "image/jpeg", "name": "foto.jpg", "to": "clipboard"},
     "share_downloads": {"module": "share", "type": "item", "mime": "application/pdf", "name": "apunte.pdf", "to": "downloads"},
     "actions_list": {"module": "actions", "type": "list"},
-    "actions_run": {"module": "actions", "type": "run", "id": "lock"}
+    "actions_run": {"module": "actions", "type": "run", "id": "lock"},
+    "inbox_list": {"module": "inbox", "type": "list"},
+    "inbox_get": {"module": "inbox", "type": "get", "id": "1794600000-ab12cd34"},
+    "inbox_done": {"module": "inbox", "type": "done", "id": "1794600000-ab12cd34"}
   },
   "pc_sends": {
     "welcome": {"type": "welcome", "v": 1, "pc": {"id": "pc1", "name": "arch"}, "modules": ["actions", "mic", "share"]},
@@ -53,7 +56,11 @@
     "share_done_clipboard": {"module": "share", "type": "done", "result": "clipboard"},
     "share_done_saved": {"module": "share", "type": "done", "result": "saved", "name": "apunte.pdf"},
     "actions_list": {"module": "actions", "type": "list", "actions": [{"id": "lock", "label": "Bloquear", "icon": "lock"}]},
-    "actions_ran": {"module": "actions", "type": "ran", "id": "lock", "ok": true}
+    "actions_ran": {"module": "actions", "type": "ran", "id": "lock", "ok": true},
+    "inbox_list": {"module": "inbox", "type": "list", "items": [{"id": "1794600000-ab12cd34", "name": "apunte.pdf", "mime": "application/pdf", "size": 4, "text": false}]},
+    "inbox_item": {"module": "inbox", "type": "item", "id": "1794600000-ab12cd34", "name": "apunte.pdf", "mime": "application/pdf", "text": false},
+    "inbox_removed": {"module": "inbox", "type": "removed", "id": "1794600000-ab12cd34"},
+    "inbox_not_found": {"type": "error", "code": "not_found", "module": "inbox"}
   },
   "pair_uri": {
     "uri": "enlace://pair?h=192.168.0.38&p=47800&id=pc1&n=arch&fp=ab12&c=CODE",
