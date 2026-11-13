@@ -2,6 +2,7 @@ name: Check
 
 on:
   push:
+    branches: ['**']   # not tags: a release tag points at a commit already checked
   workflow_dispatch:
 
 jobs:
