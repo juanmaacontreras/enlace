@@ -69,6 +69,7 @@ def cmd_pair(args) -> int:
             time.sleep(1.5)
             return 0
     print("  Nothing was paired. Run it again for a new code.")
+    time.sleep(3)  # long enough to read when this is its own window
     return 1
 
 
