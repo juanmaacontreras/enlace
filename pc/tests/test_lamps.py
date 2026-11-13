@@ -9,8 +9,10 @@ OFF = {**WHITE, SWITCH: False}
 
 
 def test_describe_reads_brightness_from_the_mode_in_use():
-    assert lamps.describe(WHITE) == {"on": True, "mode": "white", "brightness": 100, "temp": 40}
-    assert lamps.describe(BLUE) == {"on": True, "mode": "colour", "brightness": 40, "temp": 40, "hue": 240}
+    assert lamps.describe(WHITE) == {
+        "on": True, "mode": "white", "brightness": 100, "temp": 40, "tint": "#ebd2ae"}
+    assert lamps.describe(BLUE) == {
+        "on": True, "mode": "colour", "brightness": 40, "temp": 40, "hue": 240, "tint": "#4040ff"}
 
 
 def test_toggle_and_switch_only_write_the_switch():
@@ -92,3 +94,29 @@ def test_moved_bulb_is_found_again(tmp_path, monkeypatch):
     monkeypatch.setattr(lamps, "_find", lambda lamp: ("10.0.0.9", 3.5))
     assert lamps.state(lamp)["on"] is True
     assert lamps._cache()["a1"]["ip"] == "10.0.0.9"
+
+
+def test_quick_does_not_search_again_until_five_minutes_pass(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    lamp = Lamp("Luz", "a1", "k1")
+    lamps._remember("a1", "10.0.0.5", 3.5)
+    searches = []
+
+    class Dead:
+        def status(self): return {"Error": "unreachable"}
+        def close(self): pass
+
+    def find(lamp):
+        searches.append(1)
+        raise LampError("not on the network")
+
+    monkeypatch.setattr(lamps, "_open", lambda lamp, ip, version: Dead())
+    monkeypatch.setattr(lamps, "_find", find)
+    for _ in range(3):
+        with pytest.raises(LampError):
+            lamps.state(lamp, quick=True)
+    assert len(searches) == 1
+    assert lamps._cache()["a1"]["ip"] == "10.0.0.5"
+    with pytest.raises(LampError):
+        lamps.state(lamp)  # a person asking always searches
+    assert len(searches) == 2

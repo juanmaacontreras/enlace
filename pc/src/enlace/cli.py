@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import socket
 import sys
@@ -97,7 +98,31 @@ def cmd_unpair(args) -> int:
     return 0
 
 
-def _show(lamp, state) -> None:
+BULB_ON, BULB_OFF, BULB_GONE = "\U000f0335", "\U000f0336", "\U000f0e4f"
+
+
+def _waybar(lamp, state) -> str:
+    """One line of Waybar JSON: the bulb icon, a CSS class and a tooltip."""
+    if state is None:
+        return json.dumps({"text": BULB_GONE, "class": "gone", "tooltip": f"{lamp.name}: not reachable"})
+    if not state["on"]:
+        return json.dumps({"text": BULB_OFF, "class": "off", "tooltip": f"{lamp.name}: off"})
+    return json.dumps({
+        "text": f"{BULB_ON} {state['brightness']}%", "class": state["mode"],
+        "tooltip": f"{lamp.name}: {state['brightness']}%\nclick: panel · right: on/off · scroll: brightness",
+    })
+
+
+def _show(lamp, state, args=None) -> None:
+    if args is not None and args.waybar:
+        print(_waybar(lamp, state))
+        return
+    if args is not None and args.json:
+        print(json.dumps({"name": lamp.name, "reachable": state is not None, **(state or {})}))
+        return
+    if state is None:
+        print(f"{lamp.name}: not reachable")
+        return
     if not state["on"]:
         print(f"{lamp.name}: off")
         return
@@ -114,12 +139,17 @@ def cmd_lamp(args) -> int:
             targets = [lamps.pick(known, args.lamp)] if args.lamp else known
             if not targets:
                 lamps.pick(known, None)
+            if args.json or args.waybar:  # one object, for the bar and the panel
+                targets = targets[:1] if args.lamp else [lamps.pick(known, None)]
             failed = 0
             for lamp in targets:
                 try:
-                    _show(lamp, lamps.state(lamp))
+                    _show(lamp, lamps.state(lamp, quick=args.quick), args)
                 except lamps.LampError as error:
-                    print(error)
+                    if args.json or args.waybar:
+                        _show(lamp, None, args)
+                    else:
+                        print(error)
                     failed += 1
             return 1 if failed == len(targets) else 0
         if args.verb == "default":
@@ -140,7 +170,7 @@ def cmd_lamp(args) -> int:
                 return 2
             wanted["colour" if args.verb == "color" else args.verb] = args.value
         lamp = lamps.pick(known, args.lamp)
-        _show(lamp, lamps.apply(lamp, **wanted))
+        _show(lamp, lamps.apply(lamp, **wanted), args)
         return 0
     except lamps.LampError as error:
         print(error)
@@ -195,6 +225,10 @@ def main(argv: list[str] | None = None) -> int:
     lamp.add_argument("--brightness", help="with on/toggle/temp/color: percentage")
     lamp.add_argument("--temp", help="with on: white temperature, 0 warm to 100 cold")
     lamp.add_argument("--color", help="with on: colour name or #rrggbb")
+    lamp.add_argument("--json", action="store_true", help="print the state as JSON")
+    lamp.add_argument("--waybar", action="store_true", help="print the state as Waybar JSON")
+    lamp.add_argument("--quick", action="store_true",
+                      help="status: do not search the network on every call (for polling)")
     lamp.set_defaults(func=cmd_lamp)
     args = parser.parse_args(argv)
     return args.func(args)

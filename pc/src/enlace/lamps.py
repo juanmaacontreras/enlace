@@ -15,6 +15,7 @@ from __future__ import annotations
 import colorsys
 import json
 import os
+import time
 import tomllib
 from dataclasses import dataclass
 
@@ -137,6 +138,12 @@ def describe(dps: dict) -> dict:
     }
     if in_colour:
         state["hue"] = int(colour[0:4], 16)
+        sat = int(colour[4:8], 16) / SCALE
+        rgb = colorsys.hsv_to_rgb(state["hue"] / 360, sat * 0.75, 1)
+    else:  # warm amber to cold blue-white
+        mix = state["temp"] / 100
+        rgb = tuple((a + (b - a) * mix) / 255 for a, b in zip((255, 200, 120), (205, 225, 255)))
+    state["tint"] = "#" + "".join(f"{round(c * 255):02x}" for c in rgb)
     return state
 
 
@@ -183,9 +190,9 @@ def _cache() -> dict:
         return {}
 
 
-def _remember(lamp_id: str, ip: str, version: float) -> None:
+def _remember(lamp_id: str, ip: str, version: float, searched: float = 0) -> None:
     cache = _cache()
-    cache[lamp_id] = {"ip": ip, "version": version}
+    cache[lamp_id] = {"ip": ip, "version": version, "searched": searched}
     _cache_path().parent.mkdir(parents=True, exist_ok=True)
     _cache_path().write_text(json.dumps(cache))
 
@@ -210,16 +217,26 @@ def _find(lamp: Lamp) -> tuple[str, float]:
     return found["ip"], float(found.get("version") or 3.3)
 
 
-def connect(lamp: Lamp):
+SEARCH_EVERY = 300  # seconds between network searches when `quick`
+
+
+def connect(lamp: Lamp, quick: bool = False):
     """An open device and its current data points. Tries the remembered
-    address first; if the bulb is not there, looks for it on the network."""
+    address first; if the bulb is not there, looks for it on the network.
+    `quick` is for callers that poll (the bar): the search takes up to 18 s,
+    so they get at most one every five minutes and an error in between."""
     known = _cache().get(lamp.id)
-    if known:
+    if known and known.get("ip"):
         device = _open(lamp, known["ip"], known["version"])
         dps = (device.status() or {}).get("dps")
         if dps:
             return device, dps
         device.close()
+    if quick:
+        if known and time.time() - known.get("searched", 0) < SEARCH_EVERY:
+            raise LampError(f"{lamp.name}: not reachable")
+        _remember(lamp.id, (known or {}).get("ip", ""), (known or {}).get("version", 3.3),
+                  searched=time.time())
     ip, version = _find(lamp)
     device = _open(lamp, ip, version)
     answer = device.status() or {}
@@ -230,8 +247,8 @@ def connect(lamp: Lamp):
     return device, answer["dps"]
 
 
-def state(lamp: Lamp) -> dict:
-    device, dps = connect(lamp)
+def state(lamp: Lamp, quick: bool = False) -> dict:
+    device, dps = connect(lamp, quick)
     device.close()
     return describe(dps)
 
