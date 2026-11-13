@@ -50,5 +50,8 @@ A device opens one connection per job (the screen, a share, the microphone strea
 | `share` | `item` `{mime, name?, to:"clipboard"\|"downloads"}` + body | `done` `{result:"clipboard"\|"saved", name?}` |
 | `actions` | `list` | `list` `{actions:[{id,label,icon}]}` (commands never leave the PC) |
 | | `run` `{id}` | `ran` `{id, ok}` |
+| `inbox` | `list` | `list` `{items:[{id,name,mime,size,text}]}`: what `enlace send` queued, oldest first |
+| | `get` `{id}` | `item` `{id,name,mime,text}` + body, or error `not_found`. `text:true` is for the clipboard |
+| | `done` `{id}` | `removed` `{id}`: only now the PC deletes it (unclaimed items expire after 7 days) |
 
 Closing the connection ends whatever the device had running (the microphone).

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Only the downloaded update, handed to the system installer. -->
+    <!-- The downloaded update, handed to the system installer. -->
     <cache-path name="update" path="update/" />
+    <!-- module: inbox, only before Android 10 (later versions save to the shared folders). -->
+    <external-files-path name="received" path="received/" />
 </paths>

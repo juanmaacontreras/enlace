@@ -43,4 +43,12 @@ object Messages {
 
     fun actionsRun(id: String): JSONObject =
         JSONObject().put("module", "actions").put("type", "run").put("id", id)
+
+    fun inboxList(): JSONObject = JSONObject().put("module", "inbox").put("type", "list")
+
+    fun inboxGet(id: String): JSONObject =
+        JSONObject().put("module", "inbox").put("type", "get").put("id", id)
+
+    fun inboxDone(id: String): JSONObject =
+        JSONObject().put("module", "inbox").put("type", "done").put("id", id)
 }

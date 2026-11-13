@@ -41,7 +41,7 @@ class ScreensTest {
 
         val target = PairUri.parse(uri)!!
         val link = Link.connect(target.pc, Device(Prefs.deviceId(context), "Redmi Note 11"),
-            listOf("actions", "mic", "share"), pair = target.code)
+            listOf("actions", "inbox", "mic", "share"), pair = target.code)
         Prefs.save(context, link.pc.copy(name = "arch"))
         link.close()
         save(open(), "2-vinculado.png")

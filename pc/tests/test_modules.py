@@ -2,7 +2,14 @@ import asyncio
 import io
 
 from enlace import modules
-from enlace.modules import actions, share
+import json
+import os
+import time
+from pathlib import Path
+
+from enlace.modules import actions, inbox, share
+
+FIXTURES = json.loads((Path(__file__).parents[2] / "contract" / "fixtures.json").read_text())
 
 
 class FakeSession:
@@ -16,7 +23,7 @@ class FakeSession:
 
 
 def test_every_module_file_is_found():
-    assert sorted(modules.load()) == ["actions", "mic", "share"]
+    assert sorted(modules.load()) == ["actions", "inbox", "mic", "share"]
 
 
 def test_safe_name_never_keeps_a_path():
@@ -109,3 +116,63 @@ def test_example_actions_file_is_valid(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     assert actions.write_example() and not actions.write_example()
     assert [a["id"] for a in actions.read()][:2] == ["lock", "play-pause"]
+
+
+class BodySession(FakeSession):
+    def __init__(self):
+        super().__init__()
+        self.bodies = []
+
+    async def send(self, header, body=b""):
+        self.sent.append(header)
+        self.bodies.append(body)
+
+
+def test_inbox_speaks_the_contract(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    monkeypatch.setattr(inbox.time, "time", lambda: 1794600000)
+    monkeypatch.setattr(inbox.secrets, "token_hex", lambda n: "ab12cd34")
+    meta = inbox.queue(b"%PDF", "/home/someone/apunte.pdf")
+    monkeypatch.undo()
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    ident = meta["id"]
+    session, mod, sends = BodySession(), inbox.Inbox(), FIXTURES["pc_sends"]
+
+    async def scenario():
+        await mod.handle(session, {"module": "inbox", "type": "list"}, b"")
+        await mod.handle(session, {"module": "inbox", "type": "get", "id": ident}, b"")
+        await mod.handle(session, {"module": "inbox", "type": "get", "id": "../../etc"}, b"")
+        await mod.handle(session, {"module": "inbox", "type": "done", "id": ident}, b"")
+        await mod.handle(session, {"module": "inbox", "type": "list"}, b"")
+
+    asyncio.run(scenario())
+    listed, item, missing, removed, empty = session.sent
+    assert listed == sends["inbox_list"]
+    assert item == sends["inbox_item"] and session.bodies[1] == b"%PDF"
+    assert missing == sends["inbox_not_found"]
+    assert removed == sends["inbox_removed"]
+    assert empty["items"] == [] and not any(inbox.outbox().iterdir())
+
+
+def test_inbox_keeps_an_unconfirmed_item_and_drops_old_ones(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    kept = inbox.queue("hola ñ".encode(), "text.txt", "text/plain", text=True)
+    old = inbox.queue(b"x", "viejo.bin")
+    week_ago = time.time() - inbox.KEEP_SECONDS - 60
+    os.utime(inbox.outbox() / old["id"], (week_ago, week_ago))
+    (inbox.outbox() / "half-written").mkdir()  # no meta.json yet: not listed, not removed
+    assert [m["id"] for m in inbox.items()] == [kept["id"]]
+    assert not (inbox.outbox() / old["id"]).exists()
+    assert (inbox.outbox() / "half-written").exists()
+    assert kept["text"] is True and kept["mime"] == "text/plain"
+
+
+def test_inbox_refuses_what_the_app_could_not_hold(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    monkeypatch.setattr(inbox, "MAX_BYTES", 3)
+    try:
+        inbox.queue(b"1234", "big.bin")
+        raise AssertionError("queued an item over the limit")
+    except inbox.TooBig:
+        pass
+    assert inbox.items() == []

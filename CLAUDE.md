@@ -6,10 +6,12 @@ https://claude.ai/artifact/PHQmVerxfbkkCipzxGaF2d
 **Does:** pairing by QR (once per device); `mic` (the device's microphone becomes a capture
 device on the PC); `share` (Compartir → A la compu: text and images land in the PC clipboard,
 other files in ~/Downloads); `actions` (buttons in the app that run commands listed on the PC);
+`inbox` (`enlace send <files> | --text | --clipboard` on the PC queues things the app fetches
+when it opens: text to the device clipboard, images to its gallery, files to Downloads);
 `enlace lamp` (PC command for the Tuya Wi-Fi bulbs, `pc/src/enlace/lamps.py`; the phone reaches
 it through action buttons).
-**Does not:** work outside the LAN, sync anything by itself in the background, send from the PC
-to the device, or touch any other app's data. No accounts, no cloud, no adb (one exception:
+**Does not:** work outside the LAN, sync anything by itself in the background, push to a
+closed app, or touch any other app's data. No accounts, no cloud, no adb (one exception:
 `enlace lamp link` logs in to Smart Life once to fetch the bulbs' keys; control is local).
 
 - **Two halves, one contract.** `pc/` (Python, asyncio, `uv`) is the service; `app/` (Kotlin,

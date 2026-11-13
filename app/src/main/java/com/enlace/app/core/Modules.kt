@@ -3,6 +3,7 @@ package com.enlace.app.core
 import android.view.View
 import com.enlace.app.MainActivity
 import com.enlace.app.modules.actions.ActionsModule
+import com.enlace.app.modules.inbox.InboxModule
 import com.enlace.app.modules.mic.MicModule
 import com.enlace.app.modules.share.ShareModule
 
@@ -26,6 +27,6 @@ interface Module {
 }
 
 object Modules {
-    val all: List<Module> = listOf(MicModule, ShareModule, ActionsModule)
+    val all: List<Module> = listOf(MicModule, ShareModule, InboxModule, ActionsModule)
     val names: List<String> get() = all.map { it.name }
 }

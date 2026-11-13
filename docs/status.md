@@ -32,6 +32,7 @@ The tablet has not installed it yet. Still to check on either device:
   stop from the notification.
 - Compartir → A la compu from Gallery, Chrome and WhatsApp; "Enviar a la compu" on selected text.
 - Action buttons.
+- `enlace send` (inbox): a text, an image and a PDF from the PC, received on opening the app.
 - The update card: it shows only when GitHub has a release newer than the installed build, so the
   first real check is the second release.
 - Whether HyperOS kills the microphone service in the background (if so: battery "no restrictions").
@@ -41,6 +42,5 @@ The tablet has not installed it yet. Still to check on either device:
 - Lamp: a `lamp` module in the app (switch, brightness and colour sliders; rendered variants
   first), a key binding and a bar icon on the PC, lamp off when the PC locks.
 
-- PC → device clipboard (Android allows writing the clipboard from a background service).
 - Retire the old path in dotfiles once the microphone is confirmed: `phone-mic`,
   `phone-mic.service`, the phone entries of `audio-in`, `clipdrop` and LocalSend.

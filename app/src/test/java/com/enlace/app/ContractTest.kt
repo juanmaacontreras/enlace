@@ -55,7 +55,7 @@ class ContractTest {
 
     @Test fun messagesTheAppBuilds() {
         val sends = fixtures.getJSONObject("app_sends")
-        val modules = listOf("actions", "mic", "share")
+        val modules = listOf("actions", "mic", "share")  // the fixture's example list
         same(sends.getJSONObject("hello_pair"), Messages.hello("d1", "Redmi", modules, pair = "CODE"))
         same(sends.getJSONObject("hello_auth"), Messages.hello("d1", "Redmi", modules, token = "TOKEN"))
         same(sends.getJSONObject("discovery_ask"), Messages.discoveryAsk("pc1"))
@@ -66,6 +66,9 @@ class ContractTest {
         same(sends.getJSONObject("share_downloads"), Messages.shareItem("application/pdf", "apunte.pdf", false))
         same(sends.getJSONObject("actions_list"), Messages.actionsList())
         same(sends.getJSONObject("actions_run"), Messages.actionsRun("lock"))
+        same(sends.getJSONObject("inbox_list"), Messages.inboxList())
+        same(sends.getJSONObject("inbox_get"), Messages.inboxGet("1794600000-ab12cd34"))
+        same(sends.getJSONObject("inbox_done"), Messages.inboxDone("1794600000-ab12cd34"))
     }
 
     @Test fun pairUri() {

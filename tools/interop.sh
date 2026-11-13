@@ -27,6 +27,11 @@ for _ in $(seq 50); do
     sleep 0.2
 done
 
+uv run --project pc enlace send --text "hola ñ" > /dev/null
+python3 -c 'import sys; sys.stdout.buffer.write(bytes(i % 249 for i in range(200000)))' > "$TMP/para el celu.bin"
+sleep 1  # ids start with the second: keeps the two items in order
+uv run --project pc enlace send "$TMP/para el celu.bin" > /dev/null
+
 ENLACE_INTEROP=$(uv run --project pc enlace pair --uri-only --host 127.0.0.1 --port "$PORT")
 export ENLACE_INTEROP
 [ "${1:-}" = "--mic" ] && export ENLACE_INTEROP_MIC=1
@@ -36,5 +41,6 @@ gradle --no-daemon -q testDebugUnitTest --tests 'com.enlace.app.LinkInteropTest'
 [ -f "$TMP/ran" ] || { echo "the action button did not run on the PC"; exit 1; }
 cmp -s <(python3 -c 'import sys; sys.stdout.buffer.write(bytes(i % 251 for i in range(300000)))') \
     "$ENLACE_DOWNLOADS/apunte ñ.pdf" || { echo "the shared file arrived damaged"; exit 1; }
+[ -z "$(ls -A "$XDG_STATE_HOME/enlace/outbox")" ] || { echo "a confirmed item is still queued on the PC"; exit 1; }
 grep -q "paired Interop" "$TMP/server.log" || { echo "the PC did not record the pairing"; exit 1; }
-echo "interop OK: pairing, refusals, discovery, actions, share${ENLACE_INTEROP_MIC:+, mic}"
+echo "interop OK: pairing, refusals, discovery, actions, share, inbox${ENLACE_INTEROP_MIC:+, mic}"
