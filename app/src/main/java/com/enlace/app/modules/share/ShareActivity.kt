@@ -22,7 +22,7 @@ class ShareActivity : Activity() {
         thread(name = "enlace-share") {
             val result = Sender.send(applicationContext, items)
             runOnUiThread {
-                Toast.makeText(applicationContext, result, Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, result, Toast.LENGTH_LONG).show()
                 finish()
             }
         }

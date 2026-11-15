@@ -13,6 +13,7 @@ import com.enlace.app.core.Prefs
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.enlace.app.modules.share.Outbox
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -45,12 +46,20 @@ class ScreensTest {
         Prefs.save(context, link.pc.copy(name = "arch"))
         link.close()
         save(open(), "2-vinculado.png")
+
+        // Away from home: the PC does not answer and two shared things wait.
+        Prefs.save(context, link.pc.copy(name = "arch", host = "192.0.2.77", id = "not-here"))
+        for (text in listOf("https://campus.example/tp3", "apunte")) {
+            val file = File.createTempFile("item", null, context.cacheDir).apply { writeText(text) }
+            Outbox.add(context, file, "text/plain", null)
+        }
+        save(open(70), "3-sin-compu-con-cola.png")
     }
 
     /** Opens the main screen and waits for its network work to reach the views. */
-    private fun open(): Activity {
+    private fun open(ticks: Int = 30): Activity {
         val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
-        repeat(30) {
+        repeat(ticks) {
             Thread.sleep(100)
             shadowOf(Looper.getMainLooper()).idle()
         }
