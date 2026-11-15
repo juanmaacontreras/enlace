@@ -143,6 +143,21 @@ class Store:
             return None
         return device
 
+    def seen(self, device_id: str, address: str, mac: str = "") -> None:
+        """Remember where a device connected from (see presence.py). Written only
+        when something changed or once an hour: devices connect many times a day."""
+        devices = self.devices()
+        device = devices.get(device_id)
+        if device is None or not address:
+            return
+        same = device.get("address") == address and (not mac or device.get("mac") == mac)
+        if same and time.time() - device.get("seen", 0) < 3600:
+            return
+        device["address"], device["seen"] = address, int(time.time())
+        if mac:
+            device["mac"] = mac
+        self._write("devices.json", devices)
+
     def unpair(self, device_id: str) -> bool:
         devices = self.devices()
         if device_id not in devices:

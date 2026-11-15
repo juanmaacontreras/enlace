@@ -84,6 +84,24 @@ def cmd_devices(args) -> int:
     return 0
 
 
+def cmd_present(args) -> int:
+    """Exit 0 if the device is on the home network, 1 if it is not, 2 if that cannot be known."""
+    from . import presence
+
+    matches = [d for d in Store().devices().values()
+               if not args.device or args.device.lower() in d["name"].lower()]
+    if len(matches) != 1:
+        print("No such device." if not matches else "More than one device: name one with --device.")
+        return 2
+    device = matches[0]
+    if not device.get("address"):
+        print(f"{device['name']}: not seen yet (open Enlace on it once).")
+        return 2
+    here = presence.present(device["address"], device.get("mac", ""))
+    print(f"{device['name']}: {'home' if here else 'away'}")
+    return 0 if here else 1
+
+
 def cmd_unpair(args) -> int:
     store = Store()
     matches = [
@@ -290,6 +308,9 @@ def main(argv: list[str] | None = None) -> int:
     pair.add_argument("--uri-only", action="store_true", help="print the pairing link and exit")
     pair.set_defaults(func=cmd_pair)
     sub.add_parser("devices", help="list paired devices").set_defaults(func=cmd_devices)
+    here = sub.add_parser("present", help="is a device on the home network? (exit 0 yes, 1 no, 2 unknown)")
+    here.add_argument("--device", help="part of the device's name (needed with more than one paired)")
+    here.set_defaults(func=cmd_present)
     unpair = sub.add_parser("unpair", help="forget a device")
     unpair.add_argument("device", help="name or id")
     unpair.set_defaults(func=cmd_unpair)

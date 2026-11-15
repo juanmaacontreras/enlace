@@ -9,7 +9,8 @@ other files in ~/Downloads); `actions` (buttons in the app that run commands lis
 `inbox` (`enlace send <files> | --text | --clipboard` on the PC queues things the app fetches
 when it opens: text to the device clipboard, images to its gallery, files to Downloads);
 `enlace lamp` (PC command for the Tuya Wi-Fi bulbs, `pc/src/enlace/lamps.py`; the phone reaches
-it through action buttons; `enlace lamp signal` pulses it as a notice); `enlace usage` (what
+it through action buttons; `enlace lamp signal` pulses it as a notice); `enlace present` (is a
+device on the home network: no app involved); `enlace usage` (what
 the devices used, from a local trace with no content).
 **Does not:** work outside the LAN, sync anything by itself in the background, push to a
 closed app, or touch any other app's data. No accounts, no cloud, no adb (one exception:

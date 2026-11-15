@@ -37,6 +37,17 @@
 - Claude Code uses it through `claude-signal` (dotfiles): green when a turn of 3 minutes or
   more ends, orange on a permission prompt, quiet from 00:00 to 08:00.
 
+## Presence (2026-11-15)
+
+- The service remembers the address and hardware address each device last connected from;
+  `enlace present --device NAME` answers home (0), away (1) or unknown (2) with one ping and
+  the kernel's neighbour table, nothing running on the device.
+- Used by `away-mode` (dotfiles, hypridle at 3 idle minutes): phone clearly gone -> pause,
+  lamp off, lock; lamp back on at the first input if it was switched off by it.
+- Checked on the real network: the router reads as there, an unused address as gone. Not
+  checked: a real phone, asleep on Wi-Fi and after leaving (the phone has to open the app
+  once after this version so its address is known).
+
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:
