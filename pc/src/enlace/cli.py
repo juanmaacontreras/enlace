@@ -84,6 +84,24 @@ def cmd_devices(args) -> int:
     return 0
 
 
+def cmd_present(args) -> int:
+    """Exit 0 if the device is on the home network, 1 if it is not, 2 if that cannot be known."""
+    from . import presence
+
+    matches = [d for d in Store().devices().values()
+               if not args.device or args.device.lower() in d["name"].lower()]
+    if len(matches) != 1:
+        print("No such device." if not matches else "More than one device: name one with --device.")
+        return 2
+    device = matches[0]
+    if not device.get("address"):
+        print(f"{device['name']}: not seen yet (open Enlace on it once).")
+        return 2
+    here = presence.present(device["address"], device.get("mac", ""))
+    print(f"{device['name']}: {'home' if here else 'away'}")
+    return 0 if here else 1
+
+
 def cmd_unpair(args) -> int:
     store = Store()
     matches = [
@@ -158,6 +176,10 @@ def cmd_lamp(args) -> int:
                 lamp.default = lamp is chosen
             lamps.write(known)
             print(f"Default lamp: {chosen.name}")
+            return 0
+        if args.verb == "signal":
+            lamp = lamps.pick(known, args.lamp)
+            _show(lamp, lamps.signal(lamp, args.value or "note"), args)
             return 0
         wanted = {"brightness": args.brightness, "temp": args.temp, "colour": args.color}
         if args.verb in ("on", "off"):
@@ -260,6 +282,20 @@ def cmd_send(args) -> int:
     return 0
 
 
+def cmd_usage(args) -> int:
+    """What the devices used, most used first."""
+    from . import usage
+
+    lines = usage.read(args.days)
+    if not lines:
+        print(f"Nothing used in the last {args.days} days (the trace started with this version).")
+        return 0
+    print(f"Last {args.days} days, {len(lines)} uses:")
+    for what, count in usage.summary(lines):
+        print(f"  {count:4d}  {what}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="enlace", description="Link phone and tablet to this PC")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -272,16 +308,19 @@ def main(argv: list[str] | None = None) -> int:
     pair.add_argument("--uri-only", action="store_true", help="print the pairing link and exit")
     pair.set_defaults(func=cmd_pair)
     sub.add_parser("devices", help="list paired devices").set_defaults(func=cmd_devices)
+    here = sub.add_parser("present", help="is a device on the home network? (exit 0 yes, 1 no, 2 unknown)")
+    here.add_argument("--device", help="part of the device's name (needed with more than one paired)")
+    here.set_defaults(func=cmd_present)
     unpair = sub.add_parser("unpair", help="forget a device")
     unpair.add_argument("device", help="name or id")
     unpair.set_defaults(func=cmd_unpair)
     lamp = sub.add_parser(
         "lamp", help="switch and dim the lamps",
         description="status | on | off | toggle | brightness N|+N|-N | temp N|warm|neutral|cold | "
-                    "color NAME|#rrggbb | default NAME | link USER_CODE",
+                    "color NAME|#rrggbb | signal done|ask|note | default NAME | link USER_CODE",
     )
     lamp.add_argument("verb", nargs="?", default="status", choices=[
-        "status", "on", "off", "toggle", "brightness", "temp", "color", "default", "link"])
+        "status", "on", "off", "toggle", "brightness", "temp", "color", "signal", "default", "link"])
     lamp.add_argument("value", nargs="?")
     lamp.add_argument("--lamp", help="part of the lamp's name (default: the default lamp)")
     lamp.add_argument("--brightness", help="with on/toggle/temp/color: percentage")
@@ -292,6 +331,9 @@ def main(argv: list[str] | None = None) -> int:
     lamp.add_argument("--quick", action="store_true",
                       help="status: do not search the network on every call (for polling)")
     lamp.set_defaults(func=cmd_lamp)
+    used = sub.add_parser("usage", help="what the devices used, most used first")
+    used.add_argument("--days", type=int, default=30)
+    used.set_defaults(func=cmd_usage)
     send = sub.add_parser("send", help="queue files or text for the phone or tablet",
                           description="With no arguments: list what is still waiting.")
     send.add_argument("files", nargs="*", help="files to send")

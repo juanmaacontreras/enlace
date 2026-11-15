@@ -15,7 +15,7 @@ import os
 import re
 from pathlib import Path
 
-from .. import desktop
+from .. import desktop, usage
 from . import Module
 
 
@@ -91,6 +91,8 @@ class Share(Module):
             name = path.name
             await desktop.notify("Enlace", f"{name}  ·  saved to Downloads")
 
+        kind = "text" if mime.startswith("text/") else "image" if mime.startswith("image/") else "file"
+        usage.record(session, self.name, result, kind=kind, bytes=len(body))
         reply = {"module": self.name, "type": "done", "result": result}
         if name:
             reply["name"] = name

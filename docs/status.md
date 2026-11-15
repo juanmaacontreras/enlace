@@ -24,6 +24,29 @@
 - Keys came from `Smart Life` by QR (`enlace lamp link <user code>`); re-pairing a bulb in the
   app changes its key, so link again after that. The second bulb ("Luz") was offline.
 
+## Usage trace and lamp signals (2026-11-15)
+
+- The service writes one line per use to `~/.local/state/enlace/usage.jsonl` (device, module,
+  kind, size; never content) and `enlace usage` counts them. Tested with the modules' own
+  handlers; no real device has written a line yet.
+- `enlace lamp signal done|ask|note` pulses the lamp in colour and leaves it as it was. Run
+  against the real bulb with the lamp on (white) and off: the state read back afterwards
+  matched. Found on the way: a write that carries a colour puts the bulb in colour mode even
+  if it also says "white", so the restore sends only the values of the mode in use. Nobody
+  has yet said how the pulses look in the room.
+- Claude Code uses it through `claude-signal` (dotfiles): green when a turn of 3 minutes or
+  more ends, orange on a permission prompt, quiet from 00:00 to 08:00.
+
+## Presence (2026-11-15)
+
+- The service remembers the address and hardware address each device last connected from;
+  `enlace present --device NAME` answers home (0), away (1) or unknown (2) with one ping and
+  the kernel's neighbour table, nothing running on the device.
+- Used by `away-mode` (dotfiles, hypridle at 3 idle minutes): phone clearly gone -> pause,
+  lamp off, lock; lamp back on at the first input if it was switched off by it.
+- Checked on the real network: the router reads as there, an unused address as gone. Not
+  checked: a real phone, asleep on Wi-Fi and after leaving (the phone has to open the app
+  once after this version so its address is known).
 ## Share queue (2026-11-15)
 
 - Shared with the PC out of reach (away from home, PC off): the item is kept in the app's
