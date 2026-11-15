@@ -92,5 +92,10 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <!-- Delivers what was shared away from home once the device is back on Wi-Fi. -->
+        <service
+            android:name=".modules.share.OutboxJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

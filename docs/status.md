@@ -47,6 +47,17 @@
 - Checked on the real network: the router reads as there, an unused address as gone. Not
   checked: a real phone, asleep on Wi-Fi and after leaving (the phone has to open the app
   once after this version so its address is known).
+## Share queue (2026-11-15)
+
+- Shared with the PC out of reach (away from home, PC off): the item is kept in the app's
+  storage and delivered to the PC's Downloads when the app next connects, or by a system job
+  (`OutboxJob`, Wi-Fi only, retried every 15 minutes while something waits; nothing scheduled
+  otherwise). Queued text arrives as `nota <date>.txt`, never in the clipboard: it would
+  replace what is copied at that moment. Unsent items are dropped after 14 days.
+- Every share is now copied to a file and streamed, so a large video costs disk, not memory.
+- Checked: `OutboxTest`, `tools/interop.sh` (a file streamed from disk arrives identical),
+  `tools/screens.sh` (screen 3: PC out of reach, two items waiting). Not checked: any of it on
+  a device; in particular whether HyperOS lets the job run with the app closed.
 
 ## Not yet verified on a real device
 
