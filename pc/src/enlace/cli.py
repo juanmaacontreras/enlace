@@ -159,6 +159,10 @@ def cmd_lamp(args) -> int:
             lamps.write(known)
             print(f"Default lamp: {chosen.name}")
             return 0
+        if args.verb == "signal":
+            lamp = lamps.pick(known, args.lamp)
+            _show(lamp, lamps.signal(lamp, args.value or "note"), args)
+            return 0
         wanted = {"brightness": args.brightness, "temp": args.temp, "colour": args.color}
         if args.verb in ("on", "off"):
             wanted["on"] = args.verb == "on"
@@ -260,6 +264,20 @@ def cmd_send(args) -> int:
     return 0
 
 
+def cmd_usage(args) -> int:
+    """What the devices used, most used first."""
+    from . import usage
+
+    lines = usage.read(args.days)
+    if not lines:
+        print(f"Nothing used in the last {args.days} days (the trace started with this version).")
+        return 0
+    print(f"Last {args.days} days, {len(lines)} uses:")
+    for what, count in usage.summary(lines):
+        print(f"  {count:4d}  {what}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="enlace", description="Link phone and tablet to this PC")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -278,10 +296,10 @@ def main(argv: list[str] | None = None) -> int:
     lamp = sub.add_parser(
         "lamp", help="switch and dim the lamps",
         description="status | on | off | toggle | brightness N|+N|-N | temp N|warm|neutral|cold | "
-                    "color NAME|#rrggbb | default NAME | link USER_CODE",
+                    "color NAME|#rrggbb | signal done|ask|note | default NAME | link USER_CODE",
     )
     lamp.add_argument("verb", nargs="?", default="status", choices=[
-        "status", "on", "off", "toggle", "brightness", "temp", "color", "default", "link"])
+        "status", "on", "off", "toggle", "brightness", "temp", "color", "signal", "default", "link"])
     lamp.add_argument("value", nargs="?")
     lamp.add_argument("--lamp", help="part of the lamp's name (default: the default lamp)")
     lamp.add_argument("--brightness", help="with on/toggle/temp/color: percentage")
@@ -292,6 +310,9 @@ def main(argv: list[str] | None = None) -> int:
     lamp.add_argument("--quick", action="store_true",
                       help="status: do not search the network on every call (for polling)")
     lamp.set_defaults(func=cmd_lamp)
+    used = sub.add_parser("usage", help="what the devices used, most used first")
+    used.add_argument("--days", type=int, default=30)
+    used.set_defaults(func=cmd_usage)
     send = sub.add_parser("send", help="queue files or text for the phone or tablet",
                           description="With no arguments: list what is still waiting.")
     send.add_argument("files", nargs="*", help="files to send")

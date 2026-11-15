@@ -120,3 +120,32 @@ def test_quick_does_not_search_again_until_five_minutes_pass(tmp_path, monkeypat
     with pytest.raises(LampError):
         lamps.state(lamp)  # a person asking always searches
     assert len(searches) == 2
+
+
+def test_a_signal_pulses_in_colour_and_puts_everything_back():
+    steps = lamps.signal_steps(WHITE, "done")
+    back = {SWITCH: True, MODE: "white", BRIGHT: 1000, TEMP: 400}  # no colour: it would change the mode
+    assert len(steps) == 4 and steps[-1] == (back, 0)
+    lit, hold = steps[0]
+    assert lit[MODE] == "colour" and lit[SWITCH] is True and hold > 0
+    assert steps[1][0] == back  # between pulses it looks as before
+    assert lamps.signal_steps(BLUE, "done")[-1][0] == {SWITCH: True, MODE: "colour", COLOUR: BLUE[COLOUR]}
+    assert len(lamps.signal_steps(WHITE, "ask")) == 6
+
+
+def test_a_signal_on_a_lamp_that_was_off_is_dim_and_ends_off():
+    steps = lamps.signal_steps(OFF, "done")
+    assert steps[0][0][COLOUR].endswith(f"{lamps.bright_value(35):04x}")
+    assert steps[1][0] == {SWITCH: False}
+    assert steps[-1][0] == {SWITCH: False, MODE: "white", BRIGHT: 1000, TEMP: 400}
+
+
+def test_a_dim_lamp_signals_at_a_visible_level_and_a_bright_one_at_its_own():
+    dim = {**WHITE, BRIGHT: 100}
+    assert lamps.signal_steps(dim, "note")[0][0][COLOUR].endswith(f"{lamps.bright_value(35):04x}")
+    assert lamps.signal_steps(WHITE, "note")[0][0][COLOUR].endswith(f"{lamps.bright_value(100):04x}")
+
+
+def test_unknown_signal_is_refused():
+    with pytest.raises(LampError):
+        lamps.signal_steps(WHITE, "party")

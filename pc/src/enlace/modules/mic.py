@@ -13,8 +13,9 @@ from __future__ import annotations
 
 import asyncio
 import fcntl
+import time
 
-from .. import desktop
+from .. import desktop, usage
 from . import Module
 
 NODE = "enlace-mic"
@@ -33,6 +34,7 @@ class Mic(Module):
         self.owner = None
         self.backlog_limit = 0
         self.previous_default = ""
+        self.started_at = 0.0
 
     async def handle(self, session, header, body):
         kind = header.get("type")
@@ -86,6 +88,7 @@ class Mic(Module):
             _, default = await desktop.run("pactl", "get-default-source")
             self.previous_default = default.strip()
             await self._use(NODE)
+            self.started_at = time.time()
             await session.send({"module": self.name, "type": "started"})
             await desktop.notify("Microphone", f"{session.name} connected")
         else:
@@ -123,6 +126,8 @@ class Mic(Module):
         self.proc = self.owner = None
         if proc is None:
             return
+        if self.started_at and owner is not None:
+            usage.record(owner, self.name, "used", seconds=round(time.time() - self.started_at))
         if proc.returncode is None:
             proc.terminate()
             try:
@@ -134,6 +139,7 @@ class Mic(Module):
             if any(l.split("\t")[1:2] == [self.previous_default] for l in out.splitlines()):
                 await self._use(self.previous_default)
         self.previous_default = ""
+        self.started_at = 0.0
         if not quiet and owner is not None:
             await desktop.notify("Microphone", f"{owner.name} disconnected")
 

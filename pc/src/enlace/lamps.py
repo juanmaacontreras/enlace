@@ -177,6 +177,46 @@ def changes(dps: dict, *, on: bool | None = None, toggle: bool = False,
     return out
 
 
+# ---- signals ----------------------------------------------------------------
+
+# A signal is a few pulses of colour that say something happened (a long job
+# ended, something needs an answer) and leave the lamp exactly as it was.
+# name: (colour, pulses)
+SIGNALS = {
+    "done": ("green", 2),
+    "ask": ("orange", 3),
+    "note": ("blue", 1),
+}
+PULSE_ON, PULSE_OFF = 0.7, 0.45  # seconds; the bulb takes about 0.3 s to change
+
+
+def signal_steps(dps: dict, name: str) -> list[tuple[dict, float]]:
+    """The writes for a signal, each with how long to hold it. The last one
+    puts every data point back, so the lamp ends as it was, off included."""
+    if name not in SIGNALS:
+        raise LampError(f"Unknown signal {name!r}. Use: {', '.join(SIGNALS)}")
+    colour, pulses = SIGNALS[name]
+    now = describe(dps)
+    # Only the values of the mode in use: a bulb that is sent a colour changes to
+    # colour mode even when the same write says "white" (seen on the real bulb).
+    mine = (COLOUR,) if now["mode"] == "colour" else (BRIGHT, TEMP)
+    before = {k: dps[k] for k in (SWITCH, MODE, *mine) if k in dps}
+    # Visible but never a flash in a dark room: a lamp that is off or dim pulses at 35 %.
+    lit = {SWITCH: True, MODE: "colour",
+           COLOUR: colour_value(colour, max(now["brightness"] if now["on"] else 0, 35))}
+    # Back to how it looked, but still on: an off lamp only goes off at the end.
+    between = {**before, SWITCH: True} if now["on"] else {SWITCH: False}
+    steps: list[tuple[dict, float]] = []
+    for i in range(pulses):
+        steps.append((lit, PULSE_ON))
+        if i < pulses - 1:
+            steps.append((between, PULSE_OFF))
+    # Mode and values first, the switch last: restoring a white lamp that was off
+    # must not show white on the way.
+    steps.append((before, 0))
+    return steps
+
+
 # ---- the bulb ---------------------------------------------------------------
 
 def _cache_path():
@@ -263,6 +303,22 @@ def apply(lamp: Lamp, **wanted) -> dict:
             if answer.get("Error"):
                 raise LampError(f"{lamp.name}: {answer['Error']}")
             dps = {**dps, **out}
+    finally:
+        device.close()
+    return describe(dps)
+
+
+def signal(lamp: Lamp, name: str) -> dict:
+    """Pulse the lamp (see SIGNALS) and leave it as it was."""
+    device, dps = connect(lamp)
+    try:
+        steps = signal_steps(dps, name)
+        try:
+            for out, hold in steps[:-1]:
+                device.set_multiple_values(out)
+                time.sleep(hold)
+        finally:  # whatever happens halfway, put it back
+            device.set_multiple_values(steps[-1][0])
     finally:
         device.close()
     return describe(dps)
