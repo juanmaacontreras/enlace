@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import tomllib
 
-from .. import store
+from .. import store, usage
 from . import Module
 
 EXAMPLE = '''\
@@ -110,6 +110,8 @@ class Actions(Module):
             ident = header.get("id")
             action = next((a for a in read() if a["id"] == ident), None)
             ok = action is not None and await self._run(action["run"])
+            if action is not None:  # an id that is not in the file is not a use
+                usage.record(session, self.name, "run", id=action["id"], ok=ok)
             await session.send({"module": self.name, "type": "ran", "id": ident, "ok": ok})
         else:
             await session.send({"type": "error", "code": "bad_request", "module": self.name})

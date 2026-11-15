@@ -19,7 +19,7 @@ import shutil
 import time
 from pathlib import Path
 
-from .. import store
+from .. import store, usage
 from . import Module
 
 MAX_BYTES = 64 * 1024 * 1024  # the app holds an item in memory while saving it
@@ -95,6 +95,9 @@ class Inbox(Module):
         elif kind == "done":
             folder = _folder(ident)
             if folder is not None:
+                meta = json.loads((folder / "meta.json").read_text())
+                kind = "text" if meta.get("text") else "image" if str(meta.get("mime")).startswith("image/") else "file"
+                usage.record(session, self.name, "received", kind=kind, bytes=meta.get("size", 0))
                 shutil.rmtree(folder, ignore_errors=True)
             await session.send({"module": self.name, "type": "removed", "id": ident})
         else:

@@ -12,7 +12,7 @@ import logging
 import ssl
 
 from . import modules as module_registry
-from . import protocol
+from . import presence, protocol
 from .protocol import ProtocolError
 from .store import Store
 
@@ -95,6 +95,7 @@ class Server:
             )
             if token:
                 log.info("paired %s (%s)", device["name"], device["id"])
+            await self._remember_address(device["id"], writer)
 
             while True:
                 header, body = await protocol.read_frame(reader)
@@ -121,6 +122,17 @@ class Server:
                     except Exception:
                         log.exception("module %s failed closing", module.name)
             writer.close()
+
+    async def _remember_address(self, device_id: str, writer: asyncio.StreamWriter) -> None:
+        """Where the device is on the network, for `enlace present`. Never fails a connection."""
+        try:
+            address = (writer.get_extra_info("peername") or ("",))[0]
+            if not address or address.startswith("127."):
+                return
+            mac, _ = await asyncio.to_thread(presence.neighbour, address)
+            self.store.seen(device_id, address, mac)
+        except Exception:
+            log.exception("could not remember the address of %s", device_id)
 
     # --- discovery ---------------------------------------------------------
 
