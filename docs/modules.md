@@ -34,5 +34,6 @@ the other side lacks is simply not shown.
 
 ## Icons for action buttons
 
-`lock, play, next, previous, volume-up, volume-down, mute, power, screen, moon, bolt, mic, share`.
+`lock, play, next, previous, volume-up, volume-down, mute, power, screen, moon, bolt, bulb,
+bright-up, bright-down, mic, share`.
 A new one is one line of 24×24 path data in `Icons` (`Ui.kt`); unknown names draw a dot.

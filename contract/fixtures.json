@@ -55,7 +55,7 @@
     "mic_stopped": {"module": "mic", "type": "stopped"},
     "share_done_clipboard": {"module": "share", "type": "done", "result": "clipboard"},
     "share_done_saved": {"module": "share", "type": "done", "result": "saved", "name": "apunte.pdf"},
-    "actions_list": {"module": "actions", "type": "list", "actions": [{"id": "lock", "label": "Bloquear", "icon": "lock"}]},
+    "actions_list": {"module": "actions", "type": "list", "actions": [{"id": "lock", "label": "Bloquear", "icon": "lock"}, {"id": "lamp", "label": "Luz", "icon": "bulb", "group": "Luz"}]},
     "actions_ran": {"module": "actions", "type": "ran", "id": "lock", "ok": true},
     "inbox_list": {"module": "inbox", "type": "list", "items": [{"id": "1794600000-ab12cd34", "name": "apunte.pdf", "mime": "application/pdf", "size": 4, "text": false}]},
     "inbox_item": {"module": "inbox", "type": "item", "id": "1794600000-ab12cd34", "name": "apunte.pdf", "mime": "application/pdf", "text": false},

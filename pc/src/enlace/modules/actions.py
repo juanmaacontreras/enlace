@@ -19,7 +19,9 @@ from . import Module
 EXAMPLE = '''\
 # Buttons the Enlace app shows. Edit freely: the app re-reads this list every
 # time it opens. `icon` is one of: lock, play, next, previous, volume-up,
-# volume-down, mute, power, screen, moon, bolt (anything else shows a dot).
+# volume-down, mute, power, screen, moon, bolt, bulb, bright-up, bright-down
+# (anything else shows a dot). `group` is optional: buttons with the same group
+# sit together under that title in the home-screen widget.
 
 [[action]]
 id = "lock"
@@ -82,6 +84,8 @@ def read() -> list[dict]:
             "label": str(entry.get("label") or ident),
             "icon": str(entry.get("icon") or ""),
             "run": run,
+            # Optional: buttons with the same group sit together under that title in the widget.
+            **({"group": str(entry["group"])[:24]} if entry.get("group") else {}),
         })
     return actions
 
@@ -100,7 +104,7 @@ class Actions(Module):
     async def handle(self, session, header, body):
         kind = header.get("type")
         if kind == "list":
-            public = [{k: a[k] for k in ("id", "label", "icon")} for a in read()]
+            public = [{k: a[k] for k in ("id", "label", "icon", "group") if k in a} for a in read()]
             await session.send({"module": self.name, "type": "list", "actions": public})
         elif kind == "run":
             ident = header.get("id")

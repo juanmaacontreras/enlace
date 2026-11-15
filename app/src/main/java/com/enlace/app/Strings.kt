@@ -69,4 +69,7 @@ object Strings {
     const val ACTIONS = "Acciones"
     const val ACTIONS_EMPTY = "Sin botones. Se agregan en la compu, en ~/.config/enlace/actions.toml"
     const val ACTION_FAILED = "No se pudo"
+    const val WIDGET_EMPTY = "Abrí Enlace una vez con la compu prendida para traer los botones"
+    const val WIDGET_UNREACHABLE = "No encontré la compu"
+    const val WIDGET_OTHER = "Compu"
 }

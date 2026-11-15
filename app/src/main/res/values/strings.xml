@@ -5,4 +5,5 @@
     <string name="mic_tile">Mic a la compu</string>
     <string name="share_target">A la compu</string>
     <string name="share_text">Enviar a la compu</string>
+    <string name="widget_label">Botones de la compu</string>
 </resources>

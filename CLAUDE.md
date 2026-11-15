@@ -6,7 +6,7 @@ https://claude.ai/artifact/PHQmVerxfbkkCipzxGaF2d
 **Does:** pairing by QR (once per device); `mic` (the device's microphone becomes a capture
 device on the PC); `share` (Compartir → A la compu: text and images land in the PC clipboard,
 other files in ~/Downloads; shared away from home, it waits on the device and lands in
-~/Downloads once the PC answers); `actions` (buttons in the app that run commands listed on the PC);
+~/Downloads once the PC answers); `actions` (buttons in the app and in a home-screen widget that run commands listed on the PC);
 `inbox` (`enlace send <files> | --text | --clipboard` on the PC queues things the app fetches
 when it opens: text to the device clipboard, images to its gallery, files to Downloads);
 `enlace lamp` (PC command for the Tuya Wi-Fi bulbs, `pc/src/enlace/lamps.py`; the phone reaches

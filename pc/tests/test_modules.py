@@ -73,6 +73,7 @@ run = "touch {marker}"
 
 [[action]]
 id = "fails"
+group = "Luz"
 run = "false"
 
 [[action]]
@@ -92,7 +93,7 @@ run = "true"
     listed, ran, failed, unknown = session.sent
     assert listed["actions"] == [
         {"id": "touch", "label": "Tocar", "icon": "bolt"},
-        {"id": "fails", "label": "fails", "icon": ""},
+        {"id": "fails", "label": "fails", "icon": "", "group": "Luz"},
     ]
     assert "run" not in json_dump(listed)  # commands never leave the PC
     assert ran == {"module": "actions", "type": "ran", "id": "touch", "ok": True}
