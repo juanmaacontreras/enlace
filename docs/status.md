@@ -59,6 +59,16 @@
   `tools/screens.sh` (screen 3: PC out of reach, two items waiting). Not checked: any of it on
   a device; in particular whether HyperOS lets the job run with the app closed.
 
+## Home-screen widget (2026-11-15)
+
+- `ActionsWidget`: the action buttons on the home screen, in rows titled by each button's
+  optional `group` in `actions.toml` (ungrouped ones share a last row; up to 3 rows of 6).
+  It draws from the list the app last got from the PC; a touch opens a link, runs the action
+  and closes it. Variant C, chosen by Claude after the user left the choice to it.
+- Checked: `WidgetTest`, contract fixtures on both sides, `tools/screens.sh` (4-widget.png is
+  the real layout). Not checked on a device: how it looks on the HyperOS and One UI
+  launchers, and whether a touch works with the app long closed.
+
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:

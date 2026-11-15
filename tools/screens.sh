@@ -10,6 +10,22 @@ PORT=47812
 TMP=$(mktemp -d)
 export XDG_STATE_HOME="$TMP/state" XDG_CONFIG_HOME="$TMP/config"
 
+mkdir -p "$XDG_CONFIG_HOME/enlace"
+cat > "$XDG_CONFIG_HOME/enlace/actions.toml" <<'TOML'
+action = [
+  { id = "lamp", label = "Luz", icon = "bulb", group = "Luz", run = "true" },
+  { id = "lamp-dimmer", label = "Menos", icon = "bright-down", group = "Luz", run = "true" },
+  { id = "lamp-brighter", label = "Más", icon = "bright-up", group = "Luz", run = "true" },
+  { id = "lamp-study", label = "Estudio", icon = "screen", group = "Luz", run = "true" },
+  { id = "lamp-night", label = "Noche", icon = "moon", group = "Luz", run = "true" },
+  { id = "lock", label = "Bloquear", icon = "lock", run = "true" },
+  { id = "play-pause", label = "Play", icon = "play", run = "true" },
+  { id = "next", label = "Siguiente", icon = "next", run = "true" },
+  { id = "volume-down", label = "Vol −", icon = "volume-down", run = "true" },
+  { id = "volume-up", label = "Vol +", icon = "volume-up", run = "true" },
+  { id = "mute", label = "Silenciar", icon = "mute", run = "true" },
+]
+TOML
 uv run --project pc enlace serve --port "$PORT" > "$TMP/server.log" 2>&1 &
 SERVER=$!
 trap 'kill $SERVER 2>/dev/null; rm -rf "$TMP"' EXIT
