@@ -51,6 +51,11 @@ object Strings {
     const val SHARE_EMPTY = "No hay nada para enviar"
     const val SHARE_TOO_BIG = "Es demasiado grande para enviar"
     const val SHARE_FAILED = "No encontré la compu"
+    const val SHARE_QUEUED = "No llego a la compu: queda guardado y se manda solo cuando vuelvas a casa"
+    const val SHARE_WAITING_ONE = "1 cosa espera para mandarse a la compu"
+    const val SHARE_WAITING_MANY = "%d cosas esperan para mandarse a la compu"
+    const val SHARE_FLUSHED_ONE = "Llegó a la compu 1 cosa que estaba esperando (en Descargas)"
+    const val SHARE_FLUSHED_MANY = "Llegaron a la compu %d cosas que estaban esperando (en Descargas)"
     const val SHARE_NOT_LINKED = "Este dispositivo no está vinculado. Abrí Enlace."
 
     const val INBOX = "De la compu"
@@ -64,4 +69,7 @@ object Strings {
     const val ACTIONS = "Acciones"
     const val ACTIONS_EMPTY = "Sin botones. Se agregan en la compu, en ~/.config/enlace/actions.toml"
     const val ACTION_FAILED = "No se pudo"
+    const val WIDGET_EMPTY = "Abrí Enlace una vez con la compu prendida para traer los botones"
+    const val WIDGET_UNREACHABLE = "No encontré la compu"
+    const val WIDGET_OTHER = "Compu"
 }

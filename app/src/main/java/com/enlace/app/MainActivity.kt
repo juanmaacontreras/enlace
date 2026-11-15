@@ -18,6 +18,7 @@ import com.enlace.app.core.Prefs
 import com.enlace.app.core.Protocol
 import com.enlace.app.core.Updater
 import com.enlace.app.modules.mic.MicModule
+import com.enlace.app.modules.share.ShareModule
 import com.google.zxing.integration.android.IntentIntegrator
 import org.json.JSONObject
 import java.util.concurrent.Executors
@@ -151,7 +152,10 @@ class MainActivity : Activity() {
         }
         // The microphone stays reachable even when the PC is not: it may be
         // running and reconnecting, and the user must be able to turn it off.
-        val visible = Modules.all.filter { it.name in shared || (it === MicModule && shared.isEmpty()) }
+        // Sharing too: what is sent without the PC waits and is delivered later.
+        val visible = Modules.all.filter {
+            it.name in shared || (shared.isEmpty() && (it === MicModule || it === ShareModule))
+        }
         for (module in visible) {
             val card = module.card(this) ?: continue
             root.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = Ui.dp(this@MainActivity, 14f) })

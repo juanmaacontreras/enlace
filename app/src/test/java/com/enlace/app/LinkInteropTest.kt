@@ -75,6 +75,12 @@ class LinkInteropTest {
             assertEquals("saved", done.header.getString("result"))
             assertEquals("apunte ñ.pdf", done.header.getString("name"))
 
+            // The same from a file on disk, streamed: how the app really sends (and its queue delivers).
+            val onDisk = java.io.File.createTempFile("enlace", ".bin").apply { writeBytes(body); deleteOnExit() }
+            val streamed = link.request(Messages.shareItem("application/pdf", "apunte ñ.pdf", false), onDisk)
+            assertEquals("saved", streamed.header.getString("result"))
+            assertEquals("apunte ñ-1.pdf", streamed.header.getString("name"))
+
             // inbox: what `enlace send` queued comes down once and is gone after the confirmation.
             val waiting = link.request(Messages.inboxList()).header.getJSONArray("items")
             assertEquals(2, waiting.length())

@@ -37,6 +37,38 @@
 - Claude Code uses it through `claude-signal` (dotfiles): green when a turn of 3 minutes or
   more ends, orange on a permission prompt, quiet from 00:00 to 08:00.
 
+## Presence (2026-11-15)
+
+- The service remembers the address and hardware address each device last connected from;
+  `enlace present --device NAME` answers home (0), away (1) or unknown (2) with one ping and
+  the kernel's neighbour table, nothing running on the device.
+- Used by `away-mode` (dotfiles, hypridle at 3 idle minutes): phone clearly gone -> pause,
+  lamp off, lock; lamp back on at the first input if it was switched off by it.
+- Checked on the real network: the router reads as there, an unused address as gone. Not
+  checked: a real phone, asleep on Wi-Fi and after leaving (the phone has to open the app
+  once after this version so its address is known).
+## Share queue (2026-11-15)
+
+- Shared with the PC out of reach (away from home, PC off): the item is kept in the app's
+  storage and delivered to the PC's Downloads when the app next connects, or by a system job
+  (`OutboxJob`, Wi-Fi only, retried every 15 minutes while something waits; nothing scheduled
+  otherwise). Queued text arrives as `nota <date>.txt`, never in the clipboard: it would
+  replace what is copied at that moment. Unsent items are dropped after 14 days.
+- Every share is now copied to a file and streamed, so a large video costs disk, not memory.
+- Checked: `OutboxTest`, `tools/interop.sh` (a file streamed from disk arrives identical),
+  `tools/screens.sh` (screen 3: PC out of reach, two items waiting). Not checked: any of it on
+  a device; in particular whether HyperOS lets the job run with the app closed.
+
+## Home-screen widget (2026-11-15)
+
+- `ActionsWidget`: the action buttons on the home screen, in rows titled by each button's
+  optional `group` in `actions.toml` (ungrouped ones share a last row; up to 3 rows of 6).
+  It draws from the list the app last got from the PC; a touch opens a link, runs the action
+  and closes it. Variant C, chosen by Claude after the user left the choice to it.
+- Checked: `WidgetTest`, contract fixtures on both sides, `tools/screens.sh` (4-widget.png is
+  the real layout). Not checked on a device: how it looks on the HyperOS and One UI
+  launchers, and whether a touch works with the app long closed.
+
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:

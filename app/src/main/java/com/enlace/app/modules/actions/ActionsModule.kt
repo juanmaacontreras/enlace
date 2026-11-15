@@ -42,6 +42,8 @@ object ActionsModule : Module {
         activity.ask(Messages.actionsList()) { reply ->
             val list = reply?.header?.optJSONArray("actions") ?: JSONArray()
             fill(activity, list)
+            // The widget draws from this copy: it must show its buttons without asking the PC.
+            if (reply != null) ActionsWidget.remember(activity, list)
         }
     }
 

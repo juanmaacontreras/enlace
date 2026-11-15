@@ -58,7 +58,22 @@ class Link private constructor(
         output.flush()
     }
 
+    /** Like [send] with the body streamed from [file]: a large file is never held in memory. */
+    @Synchronized
+    fun send(header: JSONObject, file: java.io.File) {
+        val length = file.length()
+        if (length > Protocol.MAX_BODY) throw Protocol.ProtocolException("body too large")
+        output.write(Protocol.head(header, length.toInt()))
+        file.inputStream().use { it.copyTo(output, 64 * 1024) }
+        output.flush()
+    }
+
     fun read(): Protocol.Frame = Protocol.read(input)
+
+    fun request(header: JSONObject, file: java.io.File): Protocol.Frame {
+        send(header, file)
+        return read()
+    }
 
     fun request(header: JSONObject, body: ByteArray? = null): Protocol.Frame {
         send(header, body)
