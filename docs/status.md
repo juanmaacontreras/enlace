@@ -24,6 +24,19 @@
 - Keys came from `Smart Life` by QR (`enlace lamp link <user code>`); re-pairing a bulb in the
   app changes its key, so link again after that. The second bulb ("Luz") was offline.
 
+## Usage trace and lamp signals (2026-11-15)
+
+- The service writes one line per use to `~/.local/state/enlace/usage.jsonl` (device, module,
+  kind, size; never content) and `enlace usage` counts them. Tested with the modules' own
+  handlers; no real device has written a line yet.
+- `enlace lamp signal done|ask|note` pulses the lamp in colour and leaves it as it was. Run
+  against the real bulb with the lamp on (white) and off: the state read back afterwards
+  matched. Found on the way: a write that carries a colour puts the bulb in colour mode even
+  if it also says "white", so the restore sends only the values of the mode in use. Nobody
+  has yet said how the pulses look in the room.
+- Claude Code uses it through `claude-signal` (dotfiles): green when a turn of 3 minutes or
+  more ends, orange on a permission prompt, quiet from 00:00 to 08:00.
+
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:

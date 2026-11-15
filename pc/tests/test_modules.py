@@ -176,3 +176,30 @@ def test_inbox_refuses_what_the_app_could_not_hold(tmp_path, monkeypatch):
     except inbox.TooBig:
         pass
     assert inbox.items() == []
+
+
+def test_usage_records_kinds_and_sizes_never_content(tmp_path, monkeypatch):
+    from enlace import usage
+
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.setenv("ENLACE_DOWNLOADS", str(tmp_path / "dl"))
+    actions.path().parent.mkdir(parents=True)
+    actions.path().write_text('[[action]]\nid = "ok"\nrun = "true"\n')
+    session = FakeSession()
+
+    async def go():
+        await actions.Actions().handle(session, {"type": "run", "id": "ok"}, b"")
+        await actions.Actions().handle(session, {"type": "run", "id": "not-listed"}, b"")
+        await share.Share().handle(
+            session, {"type": "item", "mime": "application/pdf", "name": "secret-name.pdf", "to": "downloads"},
+            b"secret body")
+
+    asyncio.run(go())
+    lines = usage.read()
+    assert [(l["module"], l["event"]) for l in lines] == [("actions", "run"), ("share", "saved")]
+    assert lines[0]["id"] == "ok" and lines[0]["ok"] is True and lines[0]["device"] == "Redmi"
+    assert lines[1]["kind"] == "file" and lines[1]["bytes"] == 11
+    assert "secret" not in usage.path().read_text()
+    assert usage.summary(lines) == [("actions run ok", 1), ("share saved file", 1)]
+    assert usage.read(days=30, now=time.time() + 31 * 86400) == []
