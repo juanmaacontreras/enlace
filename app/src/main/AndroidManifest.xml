@@ -92,6 +92,12 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <!-- module: board. Turning the tablet must not wipe the drawing. -->
+        <activity
+            android:name=".modules.board.BoardActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density"
+            android:exported="false" />
+
         <!-- module: actions -->
         <receiver
             android:name=".modules.actions.ActionsWidget"

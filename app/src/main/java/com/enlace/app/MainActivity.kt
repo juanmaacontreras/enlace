@@ -95,7 +95,7 @@ class MainActivity : Activity() {
                 problem = failure
                 if (opened != null) shared = opened.modules
                 render()
-                if (opened != null) Modules.all.filter { it.name in shared }.forEach { it.refresh(this) }
+                if (opened != null) Modules.all.filter { it.via in shared }.forEach { it.refresh(this) }
             }
         }
     }
@@ -154,7 +154,7 @@ class MainActivity : Activity() {
         // running and reconnecting, and the user must be able to turn it off.
         // Sharing too: what is sent without the PC waits and is delivered later.
         val visible = Modules.all.filter {
-            it.name in shared || (shared.isEmpty() && (it === MicModule || it === ShareModule))
+            it.via in shared || (shared.isEmpty() && (it === MicModule || it === ShareModule))
         }
         for (module in visible) {
             val card = module.card(this) ?: continue

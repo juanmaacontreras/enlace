@@ -69,6 +69,19 @@
   the real layout). Not checked on a device: how it looks on the HyperOS and One UI
   launchers, and whether a touch works with the app long closed.
 
+## Board (2026-11-15)
+
+- `modules/board`: a page to draw on; "A la compu" sends it, cropped to the ink, as a PNG
+  through `share` (clipboard on the PC, or the queue away from home). Pressure sets the width
+  with the stylus; a finger draws at a fixed width until a stylus is seen, then it is the palm.
+  The stylus button, its eraser end or "Goma" rub out whole strokes. Undo covers strokes,
+  rubbing and "Limpiar". The drawing lives while the board is open: no pages, no saving.
+- Its purpose is to judge how our own stroke feels on the S-Pen before thinking about a notes app.
+- Checked: `BoardTest` (ink, pressure, undo, palm, stylus button, handshake unchanged) and
+  `tools/screens.sh` (5-pizarra.png phone, 6-pizarra-tablet.png tablet). Not checked on a
+  device: latency and feel of the stroke, palm rejection on One UI, the S-Pen button, and the
+  image arriving in the PC clipboard from the board.
+
 ## Not yet verified on a real device
 
 The tablet has not installed it yet. Still to check on either device:

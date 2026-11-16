@@ -56,6 +56,8 @@ class ScreensTest {
         holder.addView(widget.apply(context, holder))
         saveView(holder, 1080, 560, "4-widget.png")
 
+        saveView(board(1080, 2340).window.decorView, 1080, 2340, "5-pizarra.png")
+
         // Away from home: the PC does not answer and two shared things wait.
         Prefs.save(context, link.pc.copy(name = "arch", host = "192.0.2.77", id = "not-here"))
         for (text in listOf("https://campus.example/tp3", "apunte")) {
@@ -63,6 +65,43 @@ class ScreensTest {
             Outbox.add(context, file, "text/plain", null)
         }
         save(open(70), "3-sin-compu-con-cola.png")
+    }
+
+    /** The board the way the tablet shows it, lying down. */
+    @Config(sdk = [34], qualifiers = "w1152dp-h720dp-land-xhdpi")
+    @Test fun boardOnTheTablet() {
+        assumeTrue(out.isNotEmpty())
+        saveView(board(2304, 1440).window.decorView, 2304, 1440, "6-pizarra-tablet.png")
+    }
+
+    /** The board with something written on it, the way a stylus would: pressure rising and falling. */
+    private fun board(width: Int, height: Int): Activity {
+        val activity = Robolectric.buildActivity(com.enlace.app.modules.board.BoardActivity::class.java).setup().get()
+        layout(activity.window.decorView, width, height)  // so the board has a size
+        val view = (activity.findViewById<android.view.ViewGroup>(android.R.id.content).getChildAt(0)
+            as android.view.ViewGroup).getChildAt(1) as com.enlace.app.modules.board.BoardView
+        val k = minOf(view.width / 1080f, view.height / 2100f) * if (width > height) 2.2f else 1f
+        val ox = (view.width - 1080f * k) / 2
+        fun curve(color: Int, x0: Float, y0: Float, f: (Float) -> Pair<Float, Float>) {
+            view.color = color
+            for (i in 0..60) {
+                val t = i / 60f
+                val (dx, dy) = f(t)
+                val pressure = 0.15f + 0.8f * kotlin.math.sin(Math.PI * t).toFloat()
+                val x = ox + (x0 + dx) * k; val y = (y0 + dy - if (width > height) 350f else 0f) * k * if (width > height) 0.42f else 1f
+                if (i == 0) view.down(x, y, pressure, rub = false) else view.move(x, y, pressure)
+            }
+            view.up()
+        }
+        // A sine, its axis, and a resistor zigzag.
+        curve(Ui.DIM, 120f, 700f) { t -> Pair(840f * t, 0f) }
+        curve(Ui.ACCENT, 120f, 700f) { t -> Pair(840f * t, -260f * kotlin.math.sin(2 * Math.PI * 2 * t).toFloat()) }
+        curve(Ui.BRIGHT, 200f, 1300f) { t ->
+            val n = (t * 8).toInt().coerceAtMost(7); val r = t * 8 - n
+            Pair(680f * t, if (n == 0 || n == 7) 0f else (if (n % 2 == 1) 1 else -1) * 90f * (1 - 2 * kotlin.math.abs(r - 0.5f)))
+        }
+        curve(Ui.YELLOW, 380f, 1600f) { t -> Pair(300f * kotlin.math.cos(2 * Math.PI * t).toFloat() * 0.5f + 150f, 120f * kotlin.math.sin(2 * Math.PI * t).toFloat()) }
+        return activity
     }
 
     /** Opens the main screen and waits for its network work to reach the views. */
@@ -77,11 +116,15 @@ class ScreensTest {
 
     private fun save(activity: Activity, name: String) = saveView(activity.window.decorView, 1080, 2340, name)
 
-    private fun saveView(view: View, width: Int, height: Int, name: String) {
+    private fun layout(view: View, width: Int, height: Int) {
         view.measure(
             View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         view.layout(0, 0, width, height)
+    }
+
+    private fun saveView(view: View, width: Int, height: Int, name: String) {
+        layout(view, width, height)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bitmap))
         File(out).mkdirs()
