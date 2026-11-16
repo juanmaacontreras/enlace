@@ -99,6 +99,29 @@ object Ui {
         )
     }
 
+    /**
+     * A round swatch to pick a colour or a pen width: a [sizeDp] dot of [color]
+     * centred in a 40dp touch target, with a ring around it when [selected].
+     */
+    fun swatch(context: Context, color: Int, sizeDp: Float, selected: Boolean, onClick: () -> Unit): View =
+        View(context).apply {
+            val box = dp(context, 40f)
+            val inset = (box - dp(context, sizeDp)) / 2
+            val dot = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) }
+            val ring = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(if (selected) RAISED else 0)
+                if (selected) setStroke(dp(context, 2f), ACCENT)
+            }
+            background = android.graphics.drawable.LayerDrawable(arrayOf(ring, dot)).apply {
+                val edge = dp(context, 2f)
+                setLayerInset(0, edge, edge, edge, edge)
+                setLayerInset(1, inset, inset, inset, inset)
+            }
+            layoutParams = LinearLayout.LayoutParams(box, box)
+            setOnClickListener { onClick() }
+        }
+
     fun gap(context: Context, heightDp: Float) = View(context).apply {
         layoutParams = LinearLayout.LayoutParams(1, dp(context, heightDp))
     }
@@ -127,6 +150,7 @@ object Icons {
         "bulb" to "M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z",
         "bright-up" to "M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z",
         "bright-down" to "M20 15.31L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z",
+        "pen" to "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
         "dot" to "M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z",
     )
 

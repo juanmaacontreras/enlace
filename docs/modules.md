@@ -19,6 +19,11 @@ A feature that needs something from the device (a sensor, a permission, a stream
    their own block in the manifest under a `<!-- module: name -->` comment. Text in `Strings.kt`.
 4. `tools/interop.sh`: extend `LinkInteropTest` so the new messages cross the real link.
 
+A feature that only **captures something on the device and sends it** (the board: a drawing
+that goes out as an image) needs no contract and no PC file: it is an app package whose
+`Module` sets `via` to the module it sends through (`share`) and hands the file to `Sender`.
+It is shown whenever that module is.
+
 Removing a module is deleting those pieces. Because `welcome.modules` is the intersection, a
 device with an older app and a PC with a newer service (or the reverse) keep working: the module
 the other side lacks is simply not shown.

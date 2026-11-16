@@ -58,6 +58,15 @@ object Strings {
     const val SHARE_FLUSHED_MANY = "Llegaron a la compu %d cosas que estaban esperando (en Descargas)"
     const val SHARE_NOT_LINKED = "Este dispositivo no está vinculado. Abrí Enlace."
 
+    const val BOARD = "Pizarra"
+    const val BOARD_ABOUT = "Dibujá o escribí con el lápiz o el dedo y mandalo a la compu, listo para pegar."
+    const val BOARD_OPEN = "Abrir pizarra"
+    const val BOARD_SEND = "A la compu"
+    const val BOARD_ERASER = "Goma"
+    const val BOARD_UNDO = "Deshacer"
+    const val BOARD_CLEAR = "Limpiar"
+    const val BOARD_EMPTY = "La pizarra está vacía"
+
     const val INBOX = "De la compu"
     const val INBOX_ABOUT = "Lo que mandás desde la compu llega al abrir Enlace."
     const val INBOX_COPIED = "Copiado, listo para pegar"

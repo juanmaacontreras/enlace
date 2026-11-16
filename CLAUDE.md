@@ -7,6 +7,7 @@ https://claude.ai/artifact/PHQmVerxfbkkCipzxGaF2d
 device on the PC); `share` (Compartir → A la compu: text and images land in the PC clipboard,
 other files in ~/Downloads; shared away from home, it waits on the device and lands in
 ~/Downloads once the PC answers); `actions` (buttons in the app and in a home-screen widget that run commands listed on the PC);
+`board` (Pizarra: draw with the stylus or a finger, the image goes to the PC clipboard through `share`; app only);
 `inbox` (`enlace send <files> | --text | --clipboard` on the PC queues things the app fetches
 when it opens: text to the device clipboard, images to its gallery, files to Downloads);
 `enlace lamp` (PC command for the Tuya Wi-Fi bulbs, `pc/src/enlace/lamps.py`; the phone reaches
@@ -31,7 +32,7 @@ touch any other app's data. No accounts, no cloud, no adb (one exception:
 - Signing key: `~/.config/enlace/signing/`, never in git or Drive. Losing it means reinstalling
   the app on every device. PC state (certificate, paired devices): `~/.local/state/enlace/`.
 - Session tools (JDK 17, Gradle 8.7, Android SDK 34) go in the scratchpad with `GRADLE_USER_HOME`
-  there too. Nothing global. The PC runs the service from this checkout (`uv tool install
+  there too: `eval "$(tools/toolchain.sh <scratchpad>/tc)"` (a reboot clears it). Nothing global. The PC runs the service from this checkout (`uv tool install
   --editable pc`), started by `enlace.service` in dotfiles: restart it after changing `pc/`.
 - **Releases are cut on this PC**, not in CI (the key stays here): `tools/release.sh` on a pushed
   `main` builds, checks and publishes `enlace.apk` as GitHub Release `v<commit count>`. The app

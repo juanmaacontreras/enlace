@@ -3,6 +3,7 @@ package com.enlace.app.core
 import android.view.View
 import com.enlace.app.MainActivity
 import com.enlace.app.modules.actions.ActionsModule
+import com.enlace.app.modules.board.BoardModule
 import com.enlace.app.modules.inbox.InboxModule
 import com.enlace.app.modules.mic.MicModule
 import com.enlace.app.modules.share.ShareModule
@@ -16,8 +17,15 @@ import com.enlace.app.modules.share.ShareModule
  * not shown. See docs/modules.md.
  */
 interface Module {
-    /** The same name the PC module uses; it travels in every frame. */
+    /** The same name the PC module uses (see [via]); it travels in every frame. */
     val name: String
+
+    /**
+     * The PC module this one needs. A module that only captures something on
+     * the device and sends it through another one (the board sends through
+     * share) names that one here and has no PC side of its own.
+     */
+    val via: String get() = name
 
     /** The module's card on the main screen, or null if it has nothing to show there. */
     fun card(activity: MainActivity): View?
@@ -27,6 +35,7 @@ interface Module {
 }
 
 object Modules {
-    val all: List<Module> = listOf(MicModule, ShareModule, InboxModule, ActionsModule)
-    val names: List<String> get() = all.map { it.name }
+    val all: List<Module> = listOf(MicModule, ShareModule, BoardModule, InboxModule, ActionsModule)
+    /** What is offered to the PC in the handshake. */
+    val names: List<String> get() = all.map { it.via }.distinct()
 }
